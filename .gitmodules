@@ -1,6 +1,3 @@
-[submodule "main-frontend"]
-	path = main-frontend
-	url = https://github.com/tursunboyevofficial/C-transs.git
-[submodule "C-transs"]
-	path = C-transs
-	url = https://github.com/tursunboyevofficial/C-transs.git
+[remote "origin"]
+    url = https://github.com/Kemeron01/c-trans.git
+    fetch = https://github.com/Kemeron01/c-trans.git
