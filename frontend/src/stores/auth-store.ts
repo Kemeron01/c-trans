@@ -1,53 +1,29 @@
 import { create } from 'zustand'
 import { getCookie, setCookie, removeCookie } from '@/lib/cookies'
 
-const ACCESS_TOKEN = 'thisisjustarandomstring'
-
-interface AuthUser {
-  accountNo: string
-  email: string
-  role: string[]
-  exp: number
-}
+// The user itself is not stored here: it comes from `GET /auth/me/`
+// through TanStack Query (see meQueryOptions).
+const ACCESS_TOKEN_COOKIE = 'ct_access_token'
 
 interface AuthState {
-  auth: {
-    user: AuthUser | null
-    setUser: (user: AuthUser | null) => void
-    accessToken: string
-    setAccessToken: (accessToken: string) => void
-    resetAccessToken: () => void
-    reset: () => void
-  }
+  accessToken: string
+  setAccessToken: (accessToken: string) => void
+  reset: () => void
 }
 
-export const useAuthStore = create<AuthState>()((set) => {
-  const cookieState = getCookie(ACCESS_TOKEN)
-  const initToken = cookieState ? JSON.parse(cookieState) : ''
-  return {
-    auth: {
-      user: null,
-      setUser: (user) =>
-        set((state) => ({ ...state, auth: { ...state.auth, user } })),
-      accessToken: initToken,
-      setAccessToken: (accessToken) =>
-        set((state) => {
-          setCookie(ACCESS_TOKEN, JSON.stringify(accessToken))
-          return { ...state, auth: { ...state.auth, accessToken } }
-        }),
-      resetAccessToken: () =>
-        set((state) => {
-          removeCookie(ACCESS_TOKEN)
-          return { ...state, auth: { ...state.auth, accessToken: '' } }
-        }),
-      reset: () =>
-        set((state) => {
-          removeCookie(ACCESS_TOKEN)
-          return {
-            ...state,
-            auth: { ...state.auth, user: null, accessToken: '' },
-          }
-        }),
-    },
-  }
-})
+function readToken() {
+  const raw = getCookie(ACCESS_TOKEN_COOKIE)
+  return raw ? decodeURIComponent(raw) : ''
+}
+
+export const useAuthStore = create<AuthState>()((set) => ({
+  accessToken: readToken(),
+  setAccessToken: (accessToken) => {
+    setCookie(ACCESS_TOKEN_COOKIE, encodeURIComponent(accessToken))
+    set({ accessToken })
+  },
+  reset: () => {
+    removeCookie(ACCESS_TOKEN_COOKIE)
+    set({ accessToken: '' })
+  },
+}))

@@ -92,7 +92,7 @@ function SidebarMenuCollapsible({
   return (
     <Collapsible
       asChild
-      defaultOpen={checkIsActive(href, item, true)}
+      defaultOpen={checkIsActive(href, item)}
       className='group/collapsible'
     >
       <SidebarMenuItem>
@@ -173,13 +173,17 @@ function SidebarMenuCollapsedDropdown({
   )
 }
 
-function checkIsActive(href: string, item: NavItem, mainNav = false) {
+// Every admin url starts with /admin, so a section is active on its own page
+// and its sub-pages (/admin/orders/42), while /admin itself matches exactly.
+function matchesUrl(path: string, url: unknown) {
+  if (typeof url !== 'string') return false
+  return path === url || (url !== '/admin' && path.startsWith(`${url}/`))
+}
+
+function checkIsActive(href: string, item: NavItem) {
+  const path = href.split('?')[0]
   return (
-    href === item.url || // /endpint?search=param
-    href.split('?')[0] === item.url || // endpoint
-    !!item?.items?.filter((i) => i.url === href).length || // if child nav is active
-    (mainNav &&
-      href.split('/')[1] !== '' &&
-      href.split('/')[1] === item?.url?.split('/')[1])
+    matchesUrl(path, item.url) ||
+    !!item.items?.some((subItem) => matchesUrl(path, subItem.url))
   )
 }

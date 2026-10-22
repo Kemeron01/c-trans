@@ -23,6 +23,7 @@ export default defineConfig({
   },
   test: {
     silent: 'passed-only',
+    setupFiles: ['./src/test-utils/setup.ts'],
     unstubEnvs: true,
     browser: {
       enabled: true,

@@ -22,6 +22,28 @@ vi.mock('@/context/theme-provider', () => ({
   useTheme: () => ({ setTheme: mocks.setTheme }),
 }))
 
+// The real nav depends on the signed-in user (TanStack Query)
+vi.mock('@/components/layout/use-staff-nav', () => ({
+  useStaffNav: () => [
+    {
+      title: 'General',
+      items: [
+        { title: 'Dashboard', url: '/admin' },
+        { title: 'Orders', url: '/admin/orders' },
+      ],
+    },
+    {
+      title: 'Settings',
+      items: [
+        {
+          title: 'Settings',
+          items: [{ title: 'Account', url: '/admin/settings/account' }],
+        },
+      ],
+    },
+  ],
+}))
+
 type ShortcutModifier = 'Control' | 'Meta'
 
 async function renderWithSearchProvider() {
@@ -109,9 +131,9 @@ describe('SearchProvider and CommandMenu', () => {
 
     await openCommandPalette(screen)
 
-    await userEvent.click(screen.getByText('Tasks'))
+    await userEvent.click(screen.getByText('Orders'))
 
-    expect(mocks.navigate).toHaveBeenCalledWith({ to: '/tasks' })
+    expect(mocks.navigate).toHaveBeenCalledWith({ to: '/admin/orders' })
     await expect
       .element(screen.getByPlaceholder(COMMAND_MENU_PLACEHOLDER))
       .not.toBeInTheDocument()
@@ -125,7 +147,9 @@ describe('SearchProvider and CommandMenu', () => {
 
     await userEvent.click(getByRole('option', { name: 'Settings Account' }))
 
-    expect(mocks.navigate).toHaveBeenCalledWith({ to: '/settings/account' })
+    expect(mocks.navigate).toHaveBeenCalledWith({
+      to: '/admin/settings/account',
+    })
     await expect
       .element(getByPlaceholder(COMMAND_MENU_PLACEHOLDER))
       .not.toBeInTheDocument()

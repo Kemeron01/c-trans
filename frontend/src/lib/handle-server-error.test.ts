@@ -27,11 +27,11 @@ describe('handleServerError', () => {
     expect(toastError).toHaveBeenCalledWith('No content.')
   })
 
-  it('prefers the API title when the error is an Axios error with response data', () => {
+  it('prefers the DRF detail when the error is an Axios error with response data', () => {
     const error = new AxiosError('Bad request')
     error.response = {
       status: 422,
-      data: { title: 'Validation failed' },
+      data: { detail: 'Validation failed' },
     } as AxiosError['response']
 
     handleServerError(error)
@@ -39,7 +39,7 @@ describe('handleServerError', () => {
     expect(toastError).toHaveBeenCalledWith('Validation failed')
   })
 
-  it('falls back to the generic message when Axios response has no data.title', () => {
+  it('falls back to the generic message when Axios response has no data.detail', () => {
     const error = new AxiosError('Request failed')
     error.response = {
       status: 500,
@@ -51,11 +51,11 @@ describe('handleServerError', () => {
     expect(toastError).toHaveBeenCalledWith('Something went wrong!')
   })
 
-  it('falls back to the generic message when Axios data.title is an empty string', () => {
+  it('falls back to the generic message when Axios data.detail is an empty string', () => {
     const error = new AxiosError('Bad request')
     error.response = {
       status: 400,
-      data: { title: '' },
+      data: { detail: '' },
     } as AxiosError['response']
 
     handleServerError(error)

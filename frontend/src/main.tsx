@@ -8,9 +8,10 @@ import {
 } from '@tanstack/react-query'
 import { RouterProvider, createRouter } from '@tanstack/react-router'
 import { toast } from 'sonner'
+import { API_MOCKS_ENABLED } from '@/api/config'
 import { useAuthStore } from '@/stores/auth-store'
 import { handleServerError } from '@/lib/handle-server-error'
-import { DirectionProvider } from './context/direction-provider'
+import i18n from '@/lib/i18n'
 import { FontProvider } from './context/font-provider'
 import { ThemeProvider } from './context/theme-provider'
 // Generated Routes
@@ -42,7 +43,7 @@ const queryClient = new QueryClient({
 
         if (error instanceof AxiosError) {
           if (error.response?.status === 304) {
-            toast.error('Content not modified!')
+            toast.error(i18n.t('errors.notModified'))
           }
         }
       },
@@ -52,20 +53,20 @@ const queryClient = new QueryClient({
     onError: (error) => {
       if (error instanceof AxiosError) {
         if (error.response?.status === 401) {
-          toast.error('Session expired!')
-          useAuthStore.getState().auth.reset()
-          const redirect = `${router.history.location.href}`
-          router.navigate({ to: '/sign-in', search: { redirect } })
+          // Only the admin panel has signed-in pages for now; the client
+          // area (stage 5) will get its own sign-in page.
+          if (!useAuthStore.getState().accessToken) return
+          toast.error(i18n.t('auth.sessionExpired'))
+          useAuthStore.getState().reset()
+          const redirect = router.history.location.href
+          router.navigate({ to: '/admin/sign-in', search: { redirect } })
         }
         if (error.response?.status === 500) {
-          toast.error('Internal Server Error!')
+          toast.error(i18n.t('errors.serverError'))
           // Only navigate to error page in production to avoid disrupting HMR in development
           if (import.meta.env.PROD) {
             router.navigate({ to: '/500' })
           }
-        }
-        if (error.response?.status === 403) {
-          // router.navigate("/forbidden", { replace: true });
         }
       }
     },
@@ -87,21 +88,29 @@ declare module '@tanstack/react-router' {
   }
 }
 
+async function enableMocking() {
+  // `import.meta.env.DEV` inline (not only via API_MOCKS_ENABLED) lets the
+  // bundler drop MSW from the production build.
+  if (!import.meta.env.DEV || !API_MOCKS_ENABLED) return
+  const { worker } = await import('./api/mocks/browser')
+  await worker.start({ onUnhandledFrame: 'bypass', quiet: true })
+}
+
 // Render the app
 const rootElement = document.getElementById('root')!
 if (!rootElement.innerHTML) {
-  const root = ReactDOM.createRoot(rootElement)
-  root.render(
-    <StrictMode>
-      <QueryClientProvider client={queryClient}>
-        <ThemeProvider>
-          <FontProvider>
-            <DirectionProvider>
+  enableMocking().then(() => {
+    const root = ReactDOM.createRoot(rootElement)
+    root.render(
+      <StrictMode>
+        <QueryClientProvider client={queryClient}>
+          <ThemeProvider>
+            <FontProvider>
               <RouterProvider router={router} />
-            </DirectionProvider>
-          </FontProvider>
-        </ThemeProvider>
-      </QueryClientProvider>
-    </StrictMode>
-  )
+            </FontProvider>
+          </ThemeProvider>
+        </QueryClientProvider>
+      </StrictMode>
+    )
+  })
 }

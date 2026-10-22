@@ -10,6 +10,7 @@ import {
 } from 'react-hook-form'
 import * as LabelPrimitive from '@radix-ui/react-label'
 import { Slot } from '@radix-ui/react-slot'
+import { useTranslation } from 'react-i18next'
 import { cn } from '@/lib/utils'
 import { Label } from '@/components/ui/label'
 
@@ -133,8 +134,17 @@ function FormDescription({ className, ...props }: React.ComponentProps<'p'>) {
 }
 
 function FormMessage({ className, ...props }: React.ComponentProps<'p'>) {
+  const { t, i18n } = useTranslation()
   const { error, formMessageId } = useFormField()
-  const body = error ? String(error?.message ?? '') : props.children
+  // zod schemas use i18n keys as messages ('auth.passwordRequired'), so they
+  // can live at module level and still follow the current language.
+  // Other messages (e.g. from the server) are shown as is.
+  const message = String(error?.message ?? '')
+  const body = error
+    ? i18n.exists(message)
+      ? t(message as never)
+      : message
+    : props.children
 
   if (!body) {
     return null
