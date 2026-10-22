@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
-import { MOCK_PASSWORD, users } from './db'
+import { MOCK_PASSWORD, users, warehouseSummary } from './db'
 
 type DemoAccountsProps = {
   onPick: (username: string, password: string) => void
@@ -27,7 +27,8 @@ export default function DemoAccounts({ onPick }: DemoAccountsProps) {
             <span className='font-mono'>{user.username}</span>
             <span className='text-xs text-muted-foreground'>
               {t(`roles.${user.role}`)}
-              {user.warehouse && ` · ${user.warehouse.name}`}
+              {user.warehouse_id &&
+                ` · ${warehouseSummary(user.warehouse_id)?.name}`}
             </span>
           </Button>
         ))}

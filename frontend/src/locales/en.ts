@@ -2,6 +2,14 @@ import { type Translation } from './types'
 
 export const en: Translation = {
   common: {
+    save: 'Save',
+    saved: 'Changes saved.',
+    created: 'Record created.',
+    edit: 'Edit',
+    actions: 'Actions',
+    active: 'Active',
+    inactive: 'Inactive',
+    status: 'Status',
     appName: 'C-Trans',
     adminPanel: 'Admin panel',
     cancel: 'Cancel',
@@ -128,6 +136,92 @@ export const en: Translation = {
     maintenanceTitle: 'Website is under maintenance',
     maintenanceDesc:
       "The site is not available at the moment. We'll be back shortly.",
+  },
+  validation: {
+    required: 'Required field.',
+    countryCode: 'Two-letter ISO code, e.g. CN.',
+    latitude: 'Latitude must be a number from −90 to 90.',
+    longitude: 'Longitude must be a number from −180 to 180.',
+    username:
+      '3–32 characters: Latin letters, digits, dot, hyphen, underscore.',
+    password: 'Password must be at least 8 characters.',
+    email: 'Invalid email.',
+  },
+  countries: {
+    description: 'Origin and destination countries. Names in three languages.',
+    add: 'Add country',
+    edit: 'Edit country',
+    code: 'Code',
+    codeHint: 'ISO 3166-1, two Latin letters (CN, RU, US, UZ).',
+    name: 'Name',
+    search: 'Search by code or name...',
+  },
+  warehouses: {
+    description:
+      'Foreign warehouses (receiving and dispatch) and Uzbekistan warehouses (arrival and hand-over).',
+    add: 'Add warehouse',
+    edit: 'Edit warehouse',
+    name: 'Name',
+    kind: 'Kind',
+    kindLocked: 'The warehouse kind cannot be changed after creation.',
+    country: 'Country',
+    city: 'City',
+    address: 'Address',
+    latitude: 'Latitude',
+    longitude: 'Longitude',
+    search: 'Search by name or address...',
+  },
+  staff: {
+    username: 'Username',
+    password: 'Password',
+    credentialsHint:
+      'The username cannot be changed. Staff cannot change their password — hand it over in person.',
+    fullName: 'Full name',
+    phone: 'Phone',
+    email: 'Email',
+    warehouse: 'Warehouse',
+    contacts: 'Contacts',
+    search: 'Search by name or username...',
+    setPassword: 'Set new password',
+    newPassword: 'New password',
+    passwordChanged: 'Password changed.',
+    block: 'Block',
+    unblock: 'Unblock',
+    blockConfirm:
+      '{{name}} will not be able to sign in until the account is unblocked.',
+    unblockConfirm: '{{name}} will be able to sign in again.',
+    blocked: 'Account blocked.',
+    unblocked: 'Account unblocked.',
+  },
+  admins: {
+    description:
+      'Warehouse admins: each one sees and manages only their own warehouse.',
+    add: 'Add admin',
+    edit: 'Edit admin',
+  },
+  userRequests: {
+    description:
+      'Warehouse admins’ requests to create workers. The account is created only after approval.',
+    descriptionAdmin:
+      'New workers of your warehouse are created through a request to the super admin.',
+    add: 'Request a worker',
+    addDescription:
+      'The worker will belong to the “{{warehouse}}” warehouse. The account appears after the super admin approves it.',
+    send: 'Send request',
+    sent: 'Request sent.',
+    approve: 'Approve',
+    approveConfirm:
+      'A worker account for {{name}} (username {{username}}) will be created at the “{{warehouse}}” warehouse.',
+    approvedToast: 'Request approved, account created.',
+    reject: 'Reject',
+    reason: 'Reason for rejection',
+    rejectedToast: 'Request rejected.',
+    createdAt: 'Created',
+    status: {
+      pending: 'Pending',
+      approved: 'Approved',
+      rejected: 'Rejected',
+    },
   },
   dataTable: {
     filter: 'Filter...',

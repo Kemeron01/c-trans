@@ -2,6 +2,14 @@ import { type Translation } from './types'
 
 export const uz: Translation = {
   common: {
+    save: 'Saqlash',
+    saved: "O'zgarishlar saqlandi.",
+    created: 'Yozuv yaratildi.',
+    edit: 'Tahrirlash',
+    actions: 'Amallar',
+    active: 'Faol',
+    inactive: 'Nofaol',
+    status: 'Holat',
     appName: 'C-Trans',
     adminPanel: 'Admin panel',
     cancel: 'Bekor qilish',
@@ -127,6 +135,92 @@ export const uz: Translation = {
     generalDesc: "Uzr so'raymiz. Keyinroq qayta urinib ko'ring.",
     maintenanceTitle: 'Texnik ishlar olib borilmoqda',
     maintenanceDesc: 'Sayt vaqtincha ishlamayapti. Tez orada qaytamiz.',
+  },
+  validation: {
+    required: 'Majburiy maydon.',
+    countryCode: 'Ikki harfli ISO kodi, masalan CN.',
+    latitude: "Kenglik −90 dan 90 gacha bo'lgan son.",
+    longitude: "Uzunlik −180 dan 180 gacha bo'lgan son.",
+    username:
+      '3–32 belgi: lotin harflari, raqamlar, nuqta, chiziqcha, pastki chiziq.',
+    password: "Parol kamida 8 belgidan iborat bo'lsin.",
+    email: "Email noto'g'ri.",
+  },
+  countries: {
+    description: "Jo'natish va qabul qilish davlatlari. Nomlari uch tilda.",
+    add: "Davlat qo'shish",
+    edit: 'Davlatni tahrirlash',
+    code: 'Kod',
+    codeHint: 'ISO 3166-1, ikkita lotin harfi (CN, RU, US, UZ).',
+    name: 'Nomi',
+    search: "Kod yoki nom bo'yicha qidiruv...",
+  },
+  warehouses: {
+    description:
+      "Xorijiy omborlar (qabul va jo'natish) va O'zbekistondagi omborlar (qabul va topshirish).",
+    add: "Ombor qo'shish",
+    edit: 'Omborni tahrirlash',
+    name: 'Nomi',
+    kind: 'Turi',
+    kindLocked: "Ombor turini yaratilgandan keyin o'zgartirib bo'lmaydi.",
+    country: 'Davlat',
+    city: 'Shahar',
+    address: 'Manzil',
+    latitude: 'Kenglik',
+    longitude: 'Uzunlik',
+    search: "Nom yoki manzil bo'yicha qidiruv...",
+  },
+  staff: {
+    username: 'Login',
+    password: 'Parol',
+    credentialsHint:
+      "Loginni o'zgartirib bo'lmaydi. Xodim parolni o'zi o'zgartirmaydi — uni shaxsan topshiring.",
+    fullName: 'F.I.Sh.',
+    phone: 'Telefon',
+    email: 'Email',
+    warehouse: 'Ombor',
+    contacts: 'Kontaktlar',
+    search: "F.I.Sh. yoki login bo'yicha qidiruv...",
+    setPassword: "Yangi parol o'rnatish",
+    newPassword: 'Yangi parol',
+    passwordChanged: "Parol o'zgartirildi.",
+    block: 'Bloklash',
+    unblock: 'Blokdan chiqarish',
+    blockConfirm:
+      '{{name}} hisob blokdan chiqarilmaguncha tizimga kira olmaydi.',
+    unblockConfirm: '{{name}} yana tizimga kira oladi.',
+    blocked: 'Hisob bloklandi.',
+    unblocked: 'Hisob blokdan chiqarildi.',
+  },
+  admins: {
+    description:
+      "Ombor adminlari: har biri faqat o'z omborini ko'radi va boshqaradi.",
+    add: "Admin qo'shish",
+    edit: 'Adminni tahrirlash',
+  },
+  userRequests: {
+    description:
+      "Ombor adminlarining xodim yaratish bo'yicha so'rovlari. Hisob faqat tasdiqlangandan keyin yaratiladi.",
+    descriptionAdmin:
+      "Omboringizning yangi xodimlari super-adminga so'rov orqali yaratiladi.",
+    add: "Xodim so'rash",
+    addDescription:
+      "Xodim «{{warehouse}}» omboriga biriktiriladi. Hisob super-admin tasdiqlagandan keyin paydo bo'ladi.",
+    send: "So'rov yuborish",
+    sent: "So'rov yuborildi.",
+    approve: 'Tasdiqlash',
+    approveConfirm:
+      '«{{warehouse}}» omborida {{name}} xodim hisobi (login {{username}}) yaratiladi.',
+    approvedToast: "So'rov tasdiqlandi, hisob yaratildi.",
+    reject: 'Rad etish',
+    reason: 'Rad etish sababi',
+    rejectedToast: "So'rov rad etildi.",
+    createdAt: 'Yaratilgan',
+    status: {
+      pending: "Ko'rib chiqilmoqda",
+      approved: 'Tasdiqlangan',
+      rejected: 'Rad etilgan',
+    },
   },
   dataTable: {
     filter: 'Filtr...',
