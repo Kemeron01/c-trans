@@ -13,3 +13,36 @@ export function formatDateTime(iso: string | null | undefined) {
 
 /** Empty strings from optional inputs become null for the API. */
 export const emptyToNull = (value: string) => value.trim() || null
+
+const locale = () => LOCALES[getLanguage()]
+
+export function formatUsd(value: number | null | undefined) {
+  if (value === null || value === undefined) return '—'
+  return new Intl.NumberFormat(locale(), {
+    style: 'currency',
+    currency: 'USD',
+  }).format(value)
+}
+
+export function formatUzs(value: number | null | undefined) {
+  if (value === null || value === undefined) return '—'
+  return new Intl.NumberFormat(locale(), {
+    style: 'currency',
+    currency: 'UZS',
+    maximumFractionDigits: 0,
+  }).format(value)
+}
+
+export function formatNumber(value: number, maxDigits = 2) {
+  return new Intl.NumberFormat(locale(), {
+    maximumFractionDigits: maxDigits,
+  }).format(value)
+}
+
+/** "22.10.2026" */
+export function formatDate(value: string | null | undefined) {
+  if (!value) return '—'
+  return new Intl.DateTimeFormat(locale(), { dateStyle: 'short' }).format(
+    new Date(value)
+  )
+}

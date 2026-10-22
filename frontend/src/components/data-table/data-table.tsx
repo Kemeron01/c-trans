@@ -33,6 +33,8 @@ type DataTableProps<TData> = {
   isLoading?: boolean
   searchPlaceholder?: string
   filters?: React.ComponentProps<typeof DataTableToolbar>['filters']
+  /** Filters applied on first render, e.g. only open leads. */
+  initialColumnFilters?: ColumnFiltersState
 }
 
 /**
@@ -45,10 +47,12 @@ export function DataTable<TData>({
   isLoading,
   searchPlaceholder,
   filters,
+  initialColumnFilters = [],
 }: DataTableProps<TData>) {
   const { t } = useTranslation()
   const [sorting, setSorting] = useState<SortingState>([])
-  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
+  const [columnFilters, setColumnFilters] =
+    useState<ColumnFiltersState>(initialColumnFilters)
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
   const [globalFilter, setGlobalFilter] = useState('')
 

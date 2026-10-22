@@ -44,3 +44,26 @@ export function usernameTaken(username: string) {
     ? fieldError('username', 'Пользователь с таким логином уже существует.')
     : null
 }
+
+/** super_admin, or staff of that warehouse. */
+export const belongsTo = (user: MockUser, warehouseId: number) =>
+  user.role === 'super_admin' || user.warehouse_id === warehouseId
+
+/** Warehouse a list request is about: own for staff, ?warehouse= for super. */
+export function scopedWarehouse(user: MockUser, request: Request) {
+  if (user.role !== 'super_admin') return user.warehouse_id
+  const param = new URL(request.url).searchParams.get('warehouse')
+  return param ? Number(param) : null
+}
+
+export const badRequest = (detail: string) =>
+  HttpResponse.json({ detail }, { status: 400 })
+
+export const forbidden = () =>
+  HttpResponse.json(
+    { detail: 'You do not have permission to perform this action.' },
+    { status: 403 }
+  )
+
+export const STAFF = ['super_admin', 'admin', 'worker'] as const
+export const MANAGERS = ['super_admin', 'admin'] as const

@@ -20,3 +20,38 @@ export const passwordSchema = () => z.string().min(8, 'validation.password')
 
 export const optionalEmail = () =>
   z.union([z.literal(''), z.email('validation.email')])
+
+// Numeric inputs are kept as strings in forms (empty = not filled) and
+// converted with Number() on submit.
+
+const isNumber = (v: string) => v.trim() !== '' && Number.isFinite(Number(v))
+
+export const positiveNumber = () =>
+  z
+    .string()
+    .trim()
+    .refine((v) => isNumber(v) && Number(v) > 0, 'validation.positive')
+
+export const nonNegativeNumber = () =>
+  z
+    .string()
+    .trim()
+    .refine((v) => isNumber(v) && Number(v) >= 0, 'validation.nonNegative')
+
+export const optionalPositiveNumber = () =>
+  z
+    .string()
+    .trim()
+    .refine(
+      (v) => v === '' || (isNumber(v) && Number(v) > 0),
+      'validation.positive'
+    )
+
+export const integerNumber = () =>
+  z
+    .string()
+    .trim()
+    .refine(
+      (v) => isNumber(v) && Number.isInteger(Number(v)),
+      'validation.integer'
+    )

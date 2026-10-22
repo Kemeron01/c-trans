@@ -47,6 +47,26 @@ export const userRequestsApi = {
       .then((r) => r.data),
 }
 
+/** Workers of the admin's warehouse (super-admin: of `warehouse`). */
+export const workersApi = {
+  list: (warehouseId?: number) =>
+    api
+      .get<StaffAccount[]>('/workers/', { params: { warehouse: warehouseId } })
+      .then((r) => r.data),
+  update: (id: number, data: { is_active: boolean }) =>
+    api.patch<StaffAccount>(`/workers/${id}/`, data).then((r) => r.data),
+  setPassword: (id: number, password: string) =>
+    api
+      .post(`/workers/${id}/set-password/`, { password })
+      .then(() => undefined),
+}
+
+export const workersQuery = (warehouseId?: number) =>
+  queryOptions({
+    queryKey: ['workers', warehouseId ?? 'own'],
+    queryFn: () => workersApi.list(warehouseId),
+  })
+
 export const adminsQuery = () =>
   queryOptions({ queryKey: ['admins'], queryFn: adminsApi.list })
 

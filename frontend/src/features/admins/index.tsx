@@ -162,7 +162,11 @@ export function Admins() {
         <AdminDialog admin={dialog.admin} onClose={() => setDialog(null)} />
       )}
       {dialog?.type === 'password' && (
-        <PasswordDialog admin={dialog.admin} onClose={() => setDialog(null)} />
+        <PasswordDialog
+          account={dialog.admin}
+          setPassword={adminsApi.setPassword}
+          onClose={() => setDialog(null)}
+        />
       )}
       {dialog?.type === 'toggle' && (
         <ConfirmDialog

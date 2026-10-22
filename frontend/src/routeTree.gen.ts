@@ -32,6 +32,8 @@ import { Route as AdminStaffClientsIndexRouteImport } from './routes/admin/_staf
 import { Route as AdminStaffCatalogIndexRouteImport } from './routes/admin/_staff/catalog/index'
 import { Route as AdminStaffCalculatorIndexRouteImport } from './routes/admin/_staff/calculator/index'
 import { Route as AdminStaffAdminsIndexRouteImport } from './routes/admin/_staff/admins/index'
+import { Route as AdminStaffShipmentsShipmentIdRouteImport } from './routes/admin/_staff/shipments/$shipmentId'
+import { Route as AdminStaffOrdersOrderIdRouteImport } from './routes/admin/_staff/orders/$orderId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -154,6 +156,17 @@ const AdminStaffAdminsIndexRoute = AdminStaffAdminsIndexRouteImport.update({
   path: '/admins/',
   getParentRoute: () => AdminStaffRouteRoute,
 } as any)
+const AdminStaffShipmentsShipmentIdRoute =
+  AdminStaffShipmentsShipmentIdRouteImport.update({
+    id: '/shipments/$shipmentId',
+    path: '/shipments/$shipmentId',
+    getParentRoute: () => AdminStaffRouteRoute,
+  } as any)
+const AdminStaffOrdersOrderIdRoute = AdminStaffOrdersOrderIdRouteImport.update({
+  id: '/orders/$orderId',
+  path: '/orders/$orderId',
+  getParentRoute: () => AdminStaffRouteRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -165,6 +178,8 @@ export interface FileRoutesByFullPath {
   '/503': typeof errors503Route
   '/admin/sign-in': typeof AdminSignInRoute
   '/admin/': typeof AdminStaffIndexRoute
+  '/admin/orders/$orderId': typeof AdminStaffOrdersOrderIdRoute
+  '/admin/shipments/$shipmentId': typeof AdminStaffShipmentsShipmentIdRoute
   '/admin/admins/': typeof AdminStaffAdminsIndexRoute
   '/admin/calculator/': typeof AdminStaffCalculatorIndexRoute
   '/admin/catalog/': typeof AdminStaffCatalogIndexRoute
@@ -189,6 +204,8 @@ export interface FileRoutesByTo {
   '/503': typeof errors503Route
   '/admin/sign-in': typeof AdminSignInRoute
   '/admin': typeof AdminStaffIndexRoute
+  '/admin/orders/$orderId': typeof AdminStaffOrdersOrderIdRoute
+  '/admin/shipments/$shipmentId': typeof AdminStaffShipmentsShipmentIdRoute
   '/admin/admins': typeof AdminStaffAdminsIndexRoute
   '/admin/calculator': typeof AdminStaffCalculatorIndexRoute
   '/admin/catalog': typeof AdminStaffCatalogIndexRoute
@@ -215,6 +232,8 @@ export interface FileRoutesById {
   '/(errors)/503': typeof errors503Route
   '/admin/sign-in': typeof AdminSignInRoute
   '/admin/_staff/': typeof AdminStaffIndexRoute
+  '/admin/_staff/orders/$orderId': typeof AdminStaffOrdersOrderIdRoute
+  '/admin/_staff/shipments/$shipmentId': typeof AdminStaffShipmentsShipmentIdRoute
   '/admin/_staff/admins/': typeof AdminStaffAdminsIndexRoute
   '/admin/_staff/calculator/': typeof AdminStaffCalculatorIndexRoute
   '/admin/_staff/catalog/': typeof AdminStaffCatalogIndexRoute
@@ -242,6 +261,8 @@ export interface FileRouteTypes {
     | '/503'
     | '/admin/sign-in'
     | '/admin/'
+    | '/admin/orders/$orderId'
+    | '/admin/shipments/$shipmentId'
     | '/admin/admins/'
     | '/admin/calculator/'
     | '/admin/catalog/'
@@ -266,6 +287,8 @@ export interface FileRouteTypes {
     | '/503'
     | '/admin/sign-in'
     | '/admin'
+    | '/admin/orders/$orderId'
+    | '/admin/shipments/$shipmentId'
     | '/admin/admins'
     | '/admin/calculator'
     | '/admin/catalog'
@@ -291,6 +314,8 @@ export interface FileRouteTypes {
     | '/(errors)/503'
     | '/admin/sign-in'
     | '/admin/_staff/'
+    | '/admin/_staff/orders/$orderId'
+    | '/admin/_staff/shipments/$shipmentId'
     | '/admin/_staff/admins/'
     | '/admin/_staff/calculator/'
     | '/admin/_staff/catalog/'
@@ -481,11 +506,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminStaffAdminsIndexRouteImport
       parentRoute: typeof AdminStaffRouteRoute
     }
+    '/admin/_staff/shipments/$shipmentId': {
+      id: '/admin/_staff/shipments/$shipmentId'
+      path: '/shipments/$shipmentId'
+      fullPath: '/admin/shipments/$shipmentId'
+      preLoaderRoute: typeof AdminStaffShipmentsShipmentIdRouteImport
+      parentRoute: typeof AdminStaffRouteRoute
+    }
+    '/admin/_staff/orders/$orderId': {
+      id: '/admin/_staff/orders/$orderId'
+      path: '/orders/$orderId'
+      fullPath: '/admin/orders/$orderId'
+      preLoaderRoute: typeof AdminStaffOrdersOrderIdRouteImport
+      parentRoute: typeof AdminStaffRouteRoute
+    }
   }
 }
 
 interface AdminStaffRouteRouteChildren {
   AdminStaffIndexRoute: typeof AdminStaffIndexRoute
+  AdminStaffOrdersOrderIdRoute: typeof AdminStaffOrdersOrderIdRoute
+  AdminStaffShipmentsShipmentIdRoute: typeof AdminStaffShipmentsShipmentIdRoute
   AdminStaffAdminsIndexRoute: typeof AdminStaffAdminsIndexRoute
   AdminStaffCalculatorIndexRoute: typeof AdminStaffCalculatorIndexRoute
   AdminStaffCatalogIndexRoute: typeof AdminStaffCatalogIndexRoute
@@ -504,6 +545,8 @@ interface AdminStaffRouteRouteChildren {
 
 const AdminStaffRouteRouteChildren: AdminStaffRouteRouteChildren = {
   AdminStaffIndexRoute: AdminStaffIndexRoute,
+  AdminStaffOrdersOrderIdRoute: AdminStaffOrdersOrderIdRoute,
+  AdminStaffShipmentsShipmentIdRoute: AdminStaffShipmentsShipmentIdRoute,
   AdminStaffAdminsIndexRoute: AdminStaffAdminsIndexRoute,
   AdminStaffCalculatorIndexRoute: AdminStaffCalculatorIndexRoute,
   AdminStaffCatalogIndexRoute: AdminStaffCatalogIndexRoute,

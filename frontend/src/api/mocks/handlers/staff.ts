@@ -13,7 +13,15 @@ import {
   users,
   warehouseSummary,
 } from '../db'
-import { fieldError, guard, notFound, usernameTaken } from '../utils'
+import {
+  belongsTo,
+  fieldError,
+  forbidden,
+  guard,
+  notFound,
+  scopedWarehouse,
+  usernameTaken,
+} from '../utils'
 
 function toStaffAccount(user: MockUser): StaffAccount {
   return {
@@ -92,6 +100,55 @@ export const staffHandlers = [
       )
       if (!admin) return notFound()
       admin.password = ((await request.json()) as { password: string }).password
+      return new HttpResponse(null, { status: 204 })
+    }
+  ),
+
+  // Workers: admin manages own warehouse, super-admin any
+  http.get(`${API_URL}/workers/`, async ({ request }) => {
+    await delay()
+    const { user, error } = guard(request, ['super_admin', 'admin'])
+    if (error) return error
+    const warehouseId = scopedWarehouse(user, request)
+    return HttpResponse.json(
+      users
+        .filter(
+          (u) =>
+            u.role === 'worker' &&
+            (warehouseId === null || u.warehouse_id === warehouseId)
+        )
+        .map(toStaffAccount)
+    )
+  }),
+
+  http.patch(`${API_URL}/workers/:id/`, async ({ request, params }) => {
+    await delay()
+    const { user, error } = guard(request, ['super_admin', 'admin'])
+    if (error) return error
+    const worker = users.find(
+      (u) => u.id === Number(params.id) && u.role === 'worker'
+    )
+    if (!worker) return notFound()
+    if (!belongsTo(user, worker.warehouse_id ?? -1)) return forbidden()
+    const { is_active } = (await request.json()) as { is_active: boolean }
+    worker.is_active = is_active
+    return HttpResponse.json(toStaffAccount(worker))
+  }),
+
+  http.post(
+    `${API_URL}/workers/:id/set-password/`,
+    async ({ request, params }) => {
+      await delay()
+      const { user, error } = guard(request, ['super_admin', 'admin'])
+      if (error) return error
+      const worker = users.find(
+        (u) => u.id === Number(params.id) && u.role === 'worker'
+      )
+      if (!worker) return notFound()
+      if (!belongsTo(user, worker.warehouse_id ?? -1)) return forbidden()
+      worker.password = (
+        (await request.json()) as { password: string }
+      ).password
       return new HttpResponse(null, { status: 204 })
     }
   ),

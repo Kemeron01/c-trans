@@ -110,3 +110,198 @@ export type UserRequest = {
   reviewed_at: string | null
   reject_reason: string | null
 }
+
+// ---- Stage 2: warehouse setup ----
+
+export type DeliveryMethod = 'avia' | 'auto'
+
+/** Weight range [weight_from, weight_to) in kg; weight_to = null means "and above". */
+export type WeightRange = {
+  weight_from: number
+  weight_to: number | null
+}
+
+export type Tariff = WeightRange & {
+  id: number
+  warehouse_id: number
+  method: DeliveryMethod
+  price_per_kg: number // USD
+}
+
+export type CourierTariff = WeightRange & {
+  id: number
+  warehouse_id: number
+  price: number // USD per order
+}
+
+/** Per foreign warehouse (requirements 3, 4.1). */
+export type WarehouseSettings = {
+  warehouse_id: number
+  min_weight_kg: number
+  volume_divisor: Record<DeliveryMethod, number>
+}
+
+export type Dimensions = {
+  weight_kg: number
+  length_cm: number
+  width_cm: number
+  height_cm: number
+}
+
+export type Product = Dimensions & {
+  id: number
+  warehouse_id: number
+  name: LocalizedText
+  description: LocalizedText
+  photo_url: string | null
+  price: number // USD
+  is_active: boolean
+  stock: { quantity: number; reserved: number }
+}
+
+export type StockMovementKind =
+  | 'receipt'
+  | 'write_off'
+  | 'reserve'
+  | 'release'
+  | 'adjustment'
+
+export type StockMovement = {
+  id: number
+  product_id: number
+  kind: StockMovementKind
+  /** Signed: + adds to stock, − removes. */
+  quantity: number
+  reason: string
+  created_by: UserRef
+  created_at: string
+}
+
+export type ExchangeRate = {
+  currency: 'UZS'
+  /** UZS for 1 USD (cbu.uz) */
+  rate: number
+  date: string
+}
+
+// ---- Stage 3: orders, leads, shipments ----
+
+export type OrderType = 'catalog' | 'delivery'
+export type ReceiveMethod = 'pickup' | 'courier'
+
+export type OrderStatus =
+  // delivery request (lead) stage
+  | 'lead_new'
+  | 'lead_negotiation'
+  | 'lead_rejected'
+  | 'awaiting_arrival'
+  | 'received'
+  // catalog order before payment
+  | 'created'
+  | 'awaiting_payment'
+  // common
+  | 'paid'
+  | 'assembling'
+  | 'ready_to_ship'
+  | 'in_transit'
+  | 'arrived_uz'
+  | 'ready_for_pickup'
+  | 'handed_to_courier'
+  | 'delivered'
+  | 'cancelled'
+
+export type ClientRef = {
+  id: number
+  full_name: string
+  phone: string
+  client_code: string
+}
+
+export type OrderItem = {
+  product_id: number
+  name: LocalizedText
+  quantity: number
+  price: number // USD at the time of order
+}
+
+export type Cargo = {
+  description: string
+  tracking_numbers: string[]
+  /** From the client, used for the preliminary price. */
+  declared: Dimensions
+  /** From the warehouse after weighing. */
+  actual: Dimensions | null
+  volume_weight: number | null
+  chargeable_weight: number | null
+}
+
+export type LeadInfo = {
+  contacted: boolean
+  result: 'agreed' | 'rejected' | null
+  comment: string
+}
+
+export type OrderAmounts = {
+  goods_usd: number
+  delivery_usd: number
+  courier_usd: number
+  total_usd: number
+  /** Fixed at the moment of charging. */
+  rate_uzs: number | null
+  total_uzs: number | null
+  /** Delivery requests before weighing: price from declared weight. */
+  is_preliminary: boolean
+}
+
+export type StatusHistoryEntry = {
+  status: OrderStatus
+  changed_by: UserRef | null // null = system (auto charge)
+  at: string
+  comment: string
+}
+
+export type Order = {
+  id: number
+  number: string
+  type: OrderType
+  client: ClientRef
+  origin_warehouse: WarehouseSummary
+  destination_warehouse: WarehouseSummary
+  method: DeliveryMethod
+  receive_method: ReceiveMethod
+  delivery_address: string | null
+  status: OrderStatus
+  amounts: OrderAmounts
+  items: OrderItem[] // catalog orders
+  cargo: Cargo | null // delivery requests
+  lead: LeadInfo | null // delivery requests
+  shipment: { id: number; number: string } | null
+  history: StatusHistoryEntry[]
+  created_at: string
+}
+
+export type ShipmentStatus = 'forming' | 'in_transit' | 'arrived'
+
+export type Checkpoint = {
+  id: number
+  name: LocalizedText
+  latitude: number
+  longitude: number
+  at: string
+  created_by: UserRef
+}
+
+export type Shipment = {
+  id: number
+  number: string
+  method: DeliveryMethod
+  origin_warehouse: WarehouseSummary
+  destination_warehouse: WarehouseSummary
+  status: ShipmentStatus
+  planned_departure: string // date YYYY-MM-DD
+  planned_arrival: string
+  departed_at: string | null
+  arrived_at: string | null
+  order_ids: number[]
+  checkpoints: Checkpoint[]
+}

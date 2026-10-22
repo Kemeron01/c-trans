@@ -4,7 +4,6 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
-import { adminsApi } from '@/api/staff'
 import { type StaffAccount } from '@/api/types'
 import { applyServerErrors } from '@/lib/form-errors'
 import { passwordSchema } from '@/lib/validation'
@@ -21,12 +20,17 @@ import { PasswordInput } from '@/components/password-input'
 
 const schema = z.object({ password: passwordSchema() })
 
-/** Super-admin sets a new password for an admin (admins cannot change it themselves). */
+/**
+ * Sets a new password for a staff account: super-admin for admins, admin for
+ * workers (staff cannot change their own password).
+ */
 export function PasswordDialog({
-  admin,
+  account,
+  setPassword,
   onClose,
 }: {
-  admin: StaffAccount
+  account: StaffAccount
+  setPassword: (id: number, password: string) => Promise<unknown>
   onClose: () => void
 }) {
   const { t } = useTranslation()
@@ -37,7 +41,7 @@ export function PasswordDialog({
 
   const save = useMutation({
     mutationFn: ({ password }: z.infer<typeof schema>) =>
-      adminsApi.setPassword(admin.id, password),
+      setPassword(account.id, password),
     onSuccess: () => {
       toast.success(t('staff.passwordChanged'))
       onClose()
@@ -50,7 +54,7 @@ export function PasswordDialog({
       open
       onOpenChange={onClose}
       title={t('staff.setPassword')}
-      description={`${admin.full_name} · ${admin.username}`}
+      description={`${account.full_name} · ${account.username}`}
       formId='password-form'
       isPending={save.isPending}
     >
