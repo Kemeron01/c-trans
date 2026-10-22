@@ -1,1 +1,0 @@
-import{_ as e,c as o,b as a,o as n}from"./index-IMnjYSFi.js";const s={};function r(c,t,d,l,p,i){return n(),o("div",null,t[0]||(t[0]=[a("h1",null,"Jo'natma edit",-1)]))}const f=e(s,[["render",r]]);export{f as default};
