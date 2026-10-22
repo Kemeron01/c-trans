@@ -13,12 +13,7 @@
     </div>
 </template>
 <script>
-import store from '@/store';
-
 export default {
-    mounted(){
-        store.state.sideNav="Banner"
-    }
 }
 </script>
 <style scoped>

@@ -1,7 +1,7 @@
 <template>
     <div class="box">
       <div class="left">
-        <p>{{$store.state.sideNav}}</p>
+        <p>{{ $route.meta.title }}</p>
       </div>
       <div class="right">
         <!-- Tungi rejim tugmasi -->
@@ -16,17 +16,17 @@
           </button>
           <ul class="dropdown-menu">
             <li>
-              <a class="dropdown-item" href="#" @click="selectFlag(china)">
-                <img :src="this.china" class="img_flag" width="17" height="17" alt="China Flag"> 中文
+              <a class="dropdown-item" href="#" @click.prevent="selectFlag(china)">
+                <img :src="china" class="img_flag" width="17" height="17" alt="China Flag"> 中文
               </a>
             </li>
             <li>
-              <a class="dropdown-item" href="#" @click="selectFlag(russia)">
+              <a class="dropdown-item" href="#" @click.prevent="selectFlag(russia)">
                 <img :src="russia" class="img_flag" width="17" height="17" alt="Russia Flag"> Russia
               </a>
             </li>
             <li>
-              <a class="dropdown-item" href="#" @click="selectFlag(uzb)">
+              <a class="dropdown-item" href="#" @click.prevent="selectFlag(uzb)">
                 <img :src="uzb" class="img_flag" width="17" height="17" alt="UZB Flag"> UZB
               </a>
             </li>
@@ -42,7 +42,6 @@
   </template>
   
   <script>
-  import store from "@/store"
   import china from "@/assets/Icon/china.png"
   import russia from "@/assets/Icon/russia.png"
   import uzb from "@/assets/Icon/united.png"

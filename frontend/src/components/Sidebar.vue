@@ -1,46 +1,41 @@
 <template >
     <div class="box">
-        <button @click="iscollapsed" class="btn_size"><i :class="{'bi bi-arrow-left-square':!this.collapsed,'bi bi-arrow-right-square':this.collapsed}" class="bi bi-arrow-left-square"></i></button>
+        <button @click="iscollapsed" class="btn_size"><i :class="collapsed ? 'bi bi-arrow-right-square' : 'bi bi-arrow-left-square'"></i></button>
         <div class="box_top">
-            <img src="../assets/logo.svg"  alt="C-trans logo"  :class="{'img_logo':~this.collapsed,'img_logo2':this.collapsed}" >
-            <router-link to="/lids" class="link" ><button class="btn btn-outline-primary"><i class=" icons bi bi-file-text"></i> <span v-if="!this.collapsed">Lidlar</span></button></router-link>
-            <router-link to="/buyurtmalar" class="link"><button class="btn btn-outline-primary"><i class="icons  bi bi-cart3"></i><span  v-if="!this.collapsed">Kutilayotgan buyumlar</span></button></router-link>
-            <router-link to="/jonatma" class="link"><button class="btn btn-outline-primary"><i class="icons bi bi-truck"></i><span v-if="!this.collapsed">Jo'natmalar</span> </button></router-link>
-            <router-link to="/users" class="link"><button class="btn btn-outline-primary"><i class="icons bi bi-person"></i> <span v-if="!this.collapsed"> Foydalanuvchilar</span></button></router-link>
-            <router-link to="/comment" class="link"><button class="btn btn-outline-primary"><i class="icons bi bi-chat-left"></i> <span v-if="!this.collapsed">Sharhlar</span> </button></router-link>
+            <img src="../assets/logo.svg"  alt="C-trans logo"  :class="collapsed ? 'img_logo2' : 'img_logo'" >
+            <router-link to="/lids" class="link" ><button class="btn btn-outline-primary"><i class=" icons bi bi-file-text"></i> <span v-if="!collapsed">Lidlar</span></button></router-link>
+            <router-link to="/buyurtmalar" class="link"><button class="btn btn-outline-primary"><i class="icons  bi bi-cart3"></i><span  v-if="!collapsed">Kutilayotgan buyumlar</span></button></router-link>
+            <router-link to="/jonatma" class="link"><button class="btn btn-outline-primary"><i class="icons bi bi-truck"></i><span v-if="!collapsed">Jo'natmalar</span> </button></router-link>
+            <router-link to="/users" class="link"><button class="btn btn-outline-primary"><i class="icons bi bi-person"></i> <span v-if="!collapsed"> Foydalanuvchilar</span></button></router-link>
+            <router-link to="/comment" class="link"><button class="btn btn-outline-primary"><i class="icons bi bi-chat-left"></i> <span v-if="!collapsed">Sharhlar</span> </button></router-link>
             <div class="btn-group" role="group">
     <button type="button" class="btn btn-primary " data-bs-toggle="dropdown" aria-expanded="false">
-        <i class="icons bi bi-gear"></i> <span v-if="!this.collapsed">Sozlamalar</span> 
+        <i class="icons bi bi-gear"></i> <span v-if="!collapsed">Sozlamalar</span> 
     </button>
     <ul class="dropdown-menu">
-      <router-link to="/admins" class="link btn"><button class="btn btn-outline-primary"><i class=" bi  bi-person-gear "></i> <span v-if="!this.collapsed">Adminlar</span> </button></router-link>
-      <router-link to="/banner" class="link btn"><button class="btn btn-outline-primary"><i class=" bi  bi-phone"></i> <span v-if="!this.collapsed">Mobil Banner</span> </button></router-link>
+      <router-link to="/admins" class="link btn"><button class="btn btn-outline-primary"><i class=" bi  bi-person-gear "></i> <span v-if="!collapsed">Adminlar</span> </button></router-link>
+      <router-link to="/banner" class="link btn"><button class="btn btn-outline-primary"><i class=" bi  bi-phone"></i> <span v-if="!collapsed">Mobil Banner</span> </button></router-link>
     </ul>
   </div>
 </div>
-<button class="box_botton bnt btn-outline-danger"><i class="exit_button bi fs-3 bi-box-arrow-right"><span v-if="!this.collapsed">Chiqish</span> </i></button>
+<button class="box_botton bnt btn-outline-danger" @click="logout"><i class="exit_button bi fs-3 bi-box-arrow-right"><span v-if="!collapsed">Chiqish</span> </i></button>
     </div>
 </template>
 <script>
-import store from '@/store';
-import { RouterLink,RouterView } from 'vue-router';
 export default {
-    data(){
-        return{
-            collapsed:true,
-            person:{
-                age:23,
-                name:'nomalum',
-                jinsi:'nomalum'
-            }
+    computed:{
+        collapsed(){
+            return this.$store.state.isCollapsed
         }
     },
     methods:{
         iscollapsed(){
-            // console.log(store.state.isCollapsed,'side1');
-            store.state.isCollapsed = !store.state.isCollapsed
-            this.collapsed = store.state.isCollapsed
-            // console.log(store.state.isCollapsed,'side2');
+            this.$store.commit('toggleSidebar')
+        },
+        logout(){
+            if (!confirm("Tizimdan chiqmoqchimisiz?")) return
+            localStorage.removeItem('token')
+            this.$router.push('/')
         }
     }
 }

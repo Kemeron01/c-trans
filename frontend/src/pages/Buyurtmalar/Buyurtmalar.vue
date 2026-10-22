@@ -50,20 +50,20 @@
           <tbody>
             <tr v-for="(order, index) in paginatedOrders" :key="order.id">
               <td>{{ index + 1 + (currentPage - 1) * pageSize }}</td>
-              <td>{{ order.user }}</td>
+              <td>{{ order.user_ucode }}</td>
               <td>{{ order.order_number }}</td>
               <td>{{ order.weight }}</td>
-              <td>{{ order.jonatmaCode }}</td>
+              <td>{{ order.shipment_id || '—' }}</td>
               <td>{{ order.createdAt }}</td>
               <td><span :class="['status', getStatusClass(order.status)]">{{ order.status }}</span></td>
               <td>
                 <i @click="editPage(order.id)" class="icon bi bi-eye"></i>
-                <i class="icon bi bi-pencil-square"></i>
+                <i @click="editPage(order.id)" class="icon bi bi-pencil-square"></i>
                 <i @click="deleteOrder(order.id)" class="icon bi bi-trash"></i>
               </td>
             </tr>
             <tr v-if="paginatedOrders.length === 0">
-              <td colspan="8" class="text-center">Ma'lumot topilmadi</td>
+              <td colspan="8" class="text-center">{{ loading ? 'Yuklanmoqda...' : "Ma'lumot topilmadi" }}</td>
             </tr>
           </tbody>
         </table>
@@ -73,7 +73,7 @@
           <div class="left">Jami buyurtmalar: {{ filteredOrders.length }}</div>
           <div class="right">
             <button @click="prevPage" :disabled="currentPage === 1">Oldingi</button>
-            <span>{{ currentPage }}</span>
+            <span>{{ currentPage }} / {{ totalPages || 1 }}</span>
             <button @click="nextPage" :disabled="currentPage >= totalPages">Keyingi</button>
           </div>
         </div>
@@ -83,32 +83,28 @@
     <!-- Modal -->
     <div class="modal" :class="{ modal_none: !modalVisible }" @click.self="closeModal">
       <div class="modal_nav left_modal">
-        <h1>{{ editMode ? 'Foydalanuvchini tahrirlash' : "Buyurtma qo'shish" }}</h1>
+        <h1>Buyurtma qo'shish</h1>
 
         <p>Foydalanuvchi kodi</p>
         <input v-model="addOrder.user_ucode" placeholder="CT-" />
-
-        <select v-model="addOrder.status" >
-          <option v-for="user in usersLimit" :key="user.key">{{ user.name }}</option>
-        </select>
 
         <p>Telefon</p>
         <input v-model="addOrder.nummber" placeholder="Telefon raqam" />
 
         <p>Umumiy miqdor</p>
-        <input v-model="addOrder.weight" placeholder="Email" />
+        <input v-model="addOrder.miqdor" type="number" placeholder="Umumiy miqdor" />
 
         <p>To'liq ismi (Uz)</p>
         <input v-model="addOrder.name" placeholder="Nomi (Uz)" />
 
         <p>Vazn (kg)</p>
-        <input v-model="addOrder.weight1" type="number" step="0.01" placeholder="Vazn (kg)" />
+        <input v-model="addOrder.weight" type="number" step="0.01" placeholder="Vazn (kg)" />
 
         <p>m3</p>
         <input v-model="addOrder.m3" type="number" step="0.001" placeholder="m3" />
 
         <p>O'rtacha og'irlik (kg/m³)</p>
-        <input v-model="addOrder.density" type="number" step="0.01" placeholder="kg/m³" />
+        <input v-model="addOrder.average_weight_kg" type="number" step="0.01" placeholder="kg/m³" />
 
         <p>Yetkazib berish narxi $</p>
         <input v-model="addOrder.price" type="number" step="0.01" placeholder="Narx" />
@@ -129,24 +125,31 @@
           <option>To'liq keldi</option>
         </select>
 
-        <button @click="saveUser">{{ editMode ? 'Saqlash' : 'Yaratish' }}</button>
+        <button @click="saveOrder" :disabled="saving">Yaratish</button>
       </div>
     </div>
   </div>
 </template>
 
 <script>
-import axios from "axios";
-import store from "@/store";
+import { api, errorMessage } from "@/api";
+
+const emptyOrder = () => ({
+  user_ucode: "",
+  nummber: "",
+  miqdor: "",
+  name: "",
+  weight: "",
+  m3: "",
+  average_weight_kg: "",
+  price: "",
+  sklad: "",
+  status: "Kutilmoqda",
+});
 
 export default {
   data() {
     return {
-      usersLimit:[{name:'Botir',id:1},
-        {
-          id:2,
-          name:"Hojakbar"
-        }],
       searchOrderNumber: "",
       searchUserCode: "",
       selectedWarehouse: "",
@@ -160,30 +163,23 @@ export default {
       currentPage: 1,
       pageSize: 10,
       orders: [],
-      addOrder:{
-        code:'',
-        nummber:"",
-        miqdor:"",
-        name:"",
-        weight:"",
-        m3:"",
-        weight1:"",
-        price:"",
-        holat:"",
-        sklad:"",
-      },
+      addOrder: emptyOrder(),
       modalVisible: false,
-      editMode: false,
+      loading: false,
+      saving: false,
     };
   },
   computed: {
     filteredOrders() {
+      const orderNumber = this.searchOrderNumber.trim().toLowerCase();
+      const userCode = this.searchUserCode.trim().toLowerCase();
       let result = this.orders.filter(order => {
         return (
-          (!this.searchOrderNumber || order.orderCode?.includes(this.searchOrderNumber)) &&
-          (!this.searchUserCode || order.userCode?.includes(this.searchUserCode)) &&
-          (!this.selectedWarehouse || order.whereHaus === this.selectedWarehouse) &&
-          (!this.selectedShipment || order.jonatmaCode === this.selectedShipment) &&
+          (!orderNumber || String(order.order_number ?? "").toLowerCase().includes(orderNumber)) &&
+          (!userCode || String(order.user_ucode ?? "").toLowerCase().includes(userCode)) &&
+          (!this.selectedWarehouse || order.wharehouseUz === this.selectedWarehouse) &&
+          (!this.selectedShipment ||
+            (this.selectedShipment === "Yuborildi" ? !!order.shipment_id : !order.shipment_id)) &&
           (!this.selectedStatus || order.status === this.selectedStatus)
         );
       });
@@ -196,97 +192,58 @@ export default {
     },
     totalPages() {
       return Math.ceil(this.filteredOrders.length / this.pageSize);
+    },
+    // Filtr o'zgarsa birinchi sahifaga qaytamiz
+    filterKey() {
+      return [this.searchOrderNumber, this.searchUserCode, this.selectedWarehouse,
+        this.selectedShipment, this.selectedStatus, this.selectedSort].join("|");
+    }
+  },
+  watch: {
+    filterKey() {
+      this.currentPage = 1;
     }
   },
   methods: {
-    async addOrders() {
-  try {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      alert("Token yo'q. Qayta login qiling.");
-      return;
-    }
-
-    const data = {
-      images: [],
-      user_ucode: this.addOrder.user_ucode, // bu bo‘sh bo‘lmasligi kerak!
-      phone_number: this.addOrder.nummber || "",
-      gmail: "",
-      quantity: this.addOrder.miqdor || 0,
-      received_quantity: "",
-      nameUz: this.addOrder.name || "",
-      nameRu: this.addOrder.name || "",
-      nameZn: this.addOrder.name || "",
-      weight: this.addOrder.weight || 0,
-      m3: this.addOrder.m3 || 0,
-      average_weight_kg: this.addOrder.weight1 || 0,
-      wharehouseUz: this.addOrder.sklad || "",
-      wharehouseRu: "",
-      wharehouseZh: "",
-      wharehouse_code: "",
-      delivery_price: this.addOrder.price || 0,
-      shipment_id: this.addOrder.shipment_id || "",
-      lead_id: this.addOrder.lead_id || "",
-      // status: this.modalUser.status || "Kutilmoqda", // enumdan biri bo‘lishi kerak
-      partially_arrived: false, // bo‘sh string emas!
-      full_arrived: false,      // bo‘sh string emas!
-      arrival_date: ""
-    };
-
-    // user_ucode bo‘sh bo‘lsa, chiqib ketsin
-    if (!data.user_ucode) {
-      alert("Foydalanuvchi kodi (user_ucode) kiritilmagan!");
-      return;
-    }
-
-    // status enum to‘g‘ri bo‘lishi shart
-    const validStatuses = [
-      "Kutilmoqda",
-      "Yarim keldi",
-      "To'liq keldi",
-      "Yuborildi",
-      "Xitoydan Chiqqan",
-      "O'zbekistonga kirgan",
-      "Toshkent ombori",
-      "Bojxona rasmiylashtiruvi",
-      "Yetkazib berilgan"
-    ];
-    // if (!validStatuses.includes(data.status)) {
-    //   alert(`Status noto‘g‘ri. Quyidagilardan birini tanlang: ${validStatuses.join(", ")}`);
-    //   return;
-    // }
-
-    const res = await axios.post(
-      'http://89.169.2.238:8002/api/v1/waiting-orders',
-      data,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
+    async fetchOrders() {
+      this.loading = true;
+      try {
+        const res = await api.get('/waiting-orders');
+        this.orders = res.data.data || [];
+      } catch (err) {
+        console.error("Buyurtmalarni yuklashda xatolik:", err);
+      } finally {
+        this.loading = false;
       }
-    );
-
-    console.log('Buyurtma muvaffaqiyatli qo‘shildi:', res.data.data);
-    this.getUaser()
-  } catch (err) {
-    console.error("Xatolik:", err.response?.data || err.message);
-    alert("Xatolik: " + (err.response?.data?.message || err.message));
-  }
-},
-// async getUser(){
-//   try{
-//     const token = localStorage.getItem('token')
-//   const res = await axios.get('http://89.169.2.238:8002/api/v1/waiting-orders',{
-//     headers:{
-//       Authorization:`Bearer ${token}`
-//     }
-//   })
-//   console.log(res.data.data,'get res');
-//   this.orders = res.data.data
-//   }catch{
-
-//   }
-// },
+    },
+    async addOrders() {
+      const data = {
+        images: [],
+        user_ucode: this.addOrder.user_ucode,
+        phone_number: this.addOrder.nummber || "",
+        gmail: "",
+        quantity: this.addOrder.miqdor || 0,
+        received_quantity: "",
+        nameUz: this.addOrder.name || "",
+        nameRu: this.addOrder.name || "",
+        nameZn: this.addOrder.name || "",
+        weight: this.addOrder.weight || 0,
+        m3: this.addOrder.m3 || 0,
+        average_weight_kg: this.addOrder.average_weight_kg || 0,
+        wharehouseUz: this.addOrder.sklad || "",
+        wharehouseRu: "",
+        wharehouseZh: "",
+        wharehouse_code: "",
+        delivery_price: this.addOrder.price || 0,
+        shipment_id: this.addOrder.shipment_id || "",
+        lead_id: this.addOrder.lead_id || "",
+        // status: this.addOrder.status, // backend enumi aniqlangach yoqiladi
+        partially_arrived: false,
+        full_arrived: false,
+        arrival_date: ""
+      };
+      await api.post('/waiting-orders', data);
+    },
     getStatusClass(status) {
       if (status === "Kutilmoqda") return "pending";
       if (["Yarim keldi", "To'liq keldi"].includes(status)) return "completed";
@@ -299,71 +256,45 @@ export default {
     nextPage() {
       if (this.currentPage < this.totalPages) this.currentPage++;
     },
-    deleteOrder(id) {
-      axios.delete(`http://localhost:3000/orders/${id}`).then(() => {
+    async deleteOrder(id) {
+      if (!confirm("Buyurtmani o‘chirmoqchimisiz?")) return;
+      try {
+        await api.delete(`/waiting-orders/${id}`);
         this.orders = this.orders.filter(order => order.id !== id);
-      });
+      } catch (err) {
+        alert("O‘chirishda xatolik: " + errorMessage(err));
+      }
     },
     editPage(id) {
       this.$router.push({ name: 'BuyurtmaEdit', params: { id } });
     },
     openAddModal() {
-      this.editMode = false;
-      this.modalUser = {
-        userCode: '', name: '', tel: '', email: '',
-        nameUz: '', nameRu: '', nameZh: '', weight: '',
-        m3: '', density: '', price: '', warehouse: '',
-        status: 'Bog‘lanilmagan'
-      };
+      this.addOrder = emptyOrder();
       this.modalVisible = true;
     },
     closeModal() {
       this.modalVisible = false;
     },
-    saveUser() {
+    async saveOrder() {
       if (!this.addOrder.user_ucode || !this.addOrder.name) {
         alert("Foydalanuvchi kodi va ismi (UZ) majburiy.");
         return;
       }
-      this.modalUser.name = this.modalUser.nameUz;
-      if (this.editMode) {
-        const index = this.orders.findIndex(u => u.id === this.modalUser.id);
-        if (index !== -1) {
-          this.$set(this.orders, index, { ...this.modalUser });
-        }
-      } else {
-        this.orders.push({
-          ...this.modalUser,
-          id: Date.now(),
-          date: new Date().toISOString().split("T")[0],
-        });
-      }
-      this.addOrders();
-      this.closeModal();
-    },
-    async getUaser(){
-      try{
-        const token = localStorage.getItem('token')
-        const res = await axios.get('http://89.169.2.238:8002/api/v1/waiting-orders',{
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
-      });
-      this.orders = res.data.data
-      }catch{
+      this.saving = true;
+      try {
+        await this.addOrders();
+        this.closeModal();
+        await this.fetchOrders();
+      } catch (err) {
+        console.error("Xatolik:", err.response?.data || err.message);
+        alert("Xatolik: " + errorMessage(err));
+      } finally {
+        this.saving = false;
       }
     }
   },
   mounted() {
-    store.state.sideNav = 'Buyurtmalar';
-    axios.get(`http://localhost:3000/orders`).then(res => {
-      const uniqueOrders = new Map();
-      res.data.forEach(order => uniqueOrders.set(order.id, order));
-      this.orders = Array.from(uniqueOrders.values());
-    });
-    // this.orderSelect()
-    this.getUaser()
-    
+    this.fetchOrders();
   }
 };
 </script>

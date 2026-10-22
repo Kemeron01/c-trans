@@ -64,8 +64,8 @@
                 <td>{{ item.status }}</td>
                 <td>{{ item.date }}</td>
                 <td>
-                  <i class="icon bi bi-eye" @click="buyurtmaQoshish(item)"></i>
-                  <i class="icon bi bi-pencil-square" @click="buyurtmaQoshish(item)"></i>
+                  <i class="icon bi bi-eye" @click="viewItem(item)"></i>
+                  <i class="icon bi bi-pencil-square" @click="editItem(item)"></i>
                   <i class="icon bi bi-trash" @click="deleteItem(item.id)"></i>
                 </td>
               </tr>
@@ -97,7 +97,6 @@
   </template>
   
   <script>
-import store from '@/store';
 
   export default {
     data() {
@@ -116,9 +115,6 @@ import store from '@/store';
           date: ''
         }
       };
-    },
-    mounted() {
-      store.state.sideNav="Jo'natmalar"
     },
     computed: {
       filteredShipments() {
@@ -158,6 +154,7 @@ import store from '@/store';
         this.toggleModal();
       },
       deleteItem(id) {
+        if (!confirm("Jo'natmani o'chirmoqchimisiz?")) return;
         this.shipments = this.shipments.filter(item => item.id !== id);
       },
       resetModal() {

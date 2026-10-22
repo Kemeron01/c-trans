@@ -51,7 +51,7 @@
   
         <div class="footer">
           <p class="left">
-            Jami foydalanuvchilar: <span>{{ filteredUsers.length }}</span>
+            Jami sharhlar: <span>{{ filteredUsers.length }}</span>
           </p>
           <div class="pagination">
             <button
@@ -70,8 +70,7 @@
   </template>
   
   <script>
-  import store from "@/store";
-import axios from "axios";
+import { mockApi } from "@/api";
   export default {
     data() {
       return {
@@ -87,8 +86,8 @@ import axios from "axios";
       filteredUsers() {
         return this.users
           .filter((user) => {
-            const codeMatch = user.userCod?.toLowerCase().includes(this.codeQuery.toLowerCase());
-            const orderMatch = user.buyurtmaraqami?.toLowerCase().includes(this.orderQuery.toLowerCase());
+            const codeMatch = (user.userCod || "").toLowerCase().includes(this.codeQuery.toLowerCase());
+            const orderMatch = String(user.buyurtmaraqami ?? "").toLowerCase().includes(this.orderQuery.toLowerCase());
             return codeMatch && orderMatch;
           })
           .sort((a, b) => {
@@ -120,9 +119,8 @@ import axios from "axios";
       },
     },
     mounted() {
-      store.state.sideNav='Comment'
-      axios
-        .get("http://localhost:3000/users")
+      mockApi
+        .get("/users")
         .then((res) => {
           this.users = res.data;
         })

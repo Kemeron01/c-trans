@@ -2,7 +2,7 @@
   <div class="box">
     <div class="edit_box">
       <button type="button" @click="ortga()" class="btns">Orqaga</button>
-      <h1>Lid tafsilotlari</h1>
+      <h1>Buyurtma tafsilotlari</h1>
       <div class="card">
         <i class="bi bi-pencil-square" @click="openModal"></i>
         <table class="table">
@@ -11,11 +11,11 @@
             <tr><td>Foydalanuvchi kodi: <span>{{ orders.user_ucode }}</span></td></tr>
             <tr><td>Telefon: <span>{{ orders.phone_number }}</span></td></tr>
             <tr><td>Elektron pochta: <span>{{ orders.gmail }}</span></td></tr>
-            <tr><td>Umumiy miqdor: <span>{{ orders.weight }}</span></td></tr>
+            <tr><td>Umumiy miqdor: <span>{{ orders.quantity }}</span></td></tr>
             <tr><td>Qabul qilingan miqdor: <span>{{ orders.received_quantity }}</span></td></tr>
             <tr><td>Name (UZ): <span>{{ orders.nameUz }}</span></td></tr>
-            <tr><td>Name (RU): <span>{{ orders.nameUz }}</span></td></tr>
-            <tr><td>Name (ZH): <span>{{ orders.nameUz }}</span></td></tr>
+            <tr><td>Name (RU): <span>{{ orders.nameRu }}</span></td></tr>
+            <tr><td>Name (ZH): <span>{{ orders.nameZh || orders.nameZn }}</span></td></tr>
             <tr><td>Vazn (kg): <span>{{ orders.weight }}</span></td></tr>
             <tr><td>M³: <span>{{ orders.m3 }}</span></td></tr>
             <tr><td>O'rtacha og'irlik (kg/m³): <span>{{ orders.average_weight_kg }}</span></td></tr>
@@ -52,7 +52,7 @@
 
     <OrderModal
       v-if="showModal"
-      :order="modalUser"
+      :order="orders"
       @save="updateOrder"
       @close="showModal = false"
     />
@@ -61,8 +61,7 @@
  
 <script>
 import OrderModal from "@/components/Modallar/OrderModal.vue";
-import axios from "axios";
-import {useRoute } from 'vue-router'
+import { api, mockApi, errorMessage } from "@/api";
 
 export default {
   components: {
@@ -72,28 +71,9 @@ export default {
   // },
   data() {
     return {
-      search: '',
-      modalVisible: false,
-      editMode: false,
       orders: {},
       showModal: false,
       imageList: [],
-      imageUrl: '',
-      modalUser: {
-        userCod: '',
-        name: '',
-        tel: '',
-        email: '',
-        nameUz: '',
-        nameRu: '',
-        nameZh: '',
-        weight: '',
-        m3: '',
-        density: '',
-        price: '',
-        warehouse: '',
-        status: 'Bog‘lanilmagan',
-      },
     };
   },
   methods: {
@@ -101,11 +81,16 @@ export default {
       this.$router.push("/buyurtmalar");
     },
     openModal() {
-      this.modalUser = this.orders;
       this.showModal = true;
     },
+    // TODO: backendda tahrirlash endpointi tayyor bo'lgach so'rov yuborish kerak
+    updateOrder(updated) {
+      this.orders = { ...this.orders, ...updated };
+      this.showModal = false;
+    },
     removeImage(index) {
-      this.imageList.splice(index, 1);
+      const [removed] = this.imageList.splice(index, 1);
+      if (removed) URL.revokeObjectURL(removed.url);
     },
     async handleImageUpload(event) {
       const files = Array.from(event.target.files);
@@ -140,7 +125,7 @@ export default {
       });
 
       try {
-        const res = await axios.post("http://localhost:3000/upload", formData, {
+        const res = await mockApi.post("/upload", formData, {
           headers: {
             "Content-Type": "multipart/form-data",
           },
@@ -148,30 +133,26 @@ export default {
         alert("Rasmlar muvaffaqiyatli yuborildi!");
         console.log(res.data);
       } catch (error) {
-        alert("Xatolik yuz berdi");
+        alert("Xatolik yuz berdi: " + errorMessage(error));
         console.error(error);
       }
     },
     async getUser(){
+      // useRoute() faqat setup() ichida ishlaydi — Options API'da this.$route ishlatiladi
+      const id = this.$route.params.id
       try{
-        const router =  useRoute()
-    const id = router.params.id
-    console.log("api start");
-    const token = localStorage.getItem('token')
-    const res = await axios.get(`http://89.169.2.238:8002/api/v1/waiting-orders/${id}`,{
-      headers:{
-        Authorization:` Bearer ${token}`
-      },
-    });
-    this.orders = res.data
-    console.log(this.orders,'res');
-    } catch{
-      console.log('error')
+        const res = await api.get(`/waiting-orders/${id}`)
+        this.orders = res.data.data ?? res.data
+      } catch (error) {
+        console.error('Buyurtmani yuklashda xatolik:', error)
       }
     }
   },
   mounted() {
     this.getUser()
+  },
+  beforeUnmount() {
+    this.imageList.forEach((img) => URL.revokeObjectURL(img.url));
   },
 };
 </script>

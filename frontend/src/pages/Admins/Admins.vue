@@ -71,8 +71,7 @@
 </template>
 
 <script>
-import store from "@/store";
-import axios from "axios";
+import { mockApi } from "@/api";
 
 export default {
   data() {
@@ -92,11 +91,10 @@ export default {
   },
   mounted() {
     this.fetchUsers();
-    store.state.sideNav='Admins'
   },
   methods: {
     fetchUsers() {
-      axios.get("http://localhost:3000/users").then((res) => {
+      mockApi.get("/users").then((res) => {
         this.users = res.data;
       });
     },
@@ -120,16 +118,17 @@ export default {
       this.showModal = false;
     },
     saveUser() {
-      const method = this.modalData.id ? axios.put : axios.post;
-      const url = this.modalData.id ? `http://localhost:3000/users/${this.modalData.id}` : "http://localhost:3000/users";
-
-      method(url, this.modalData).then(() => {
+      const request = this.modalData.id
+        ? mockApi.put(`/users/${this.modalData.id}`, this.modalData)
+        : mockApi.post("/users", this.modalData);
+      request.then(() => {
         this.fetchUsers();
         this.closeModal();
       });
     },
     deleteUser(id) {
-      axios.delete(`http://localhost:3000/users/${id}`).then(() => this.fetchUsers());
+      if (!confirm("Administratorni o‘chirmoqchimisiz?")) return;
+      mockApi.delete(`/users/${id}`).then(() => this.fetchUsers());
     }
   }
 };

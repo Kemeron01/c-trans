@@ -23,10 +23,9 @@
             <option>Hargos</option>
           </select>
 
-          <select v-model="orderFilter" @change="orderFilter1" class="form-select m-2">
-            <option  value="">Yangi boshida</option>
-            <option>Yangi boshidan</option>
-            <option>Eski boshidan</option>
+          <select v-model="orderFilter" class="form-select m-2">
+            <option value="new">Yangi boshidan</option>
+            <option value="old">Eski boshidan</option>
           </select>
         </div>
         <div class="right">
@@ -55,12 +54,18 @@
               <td>{{ user.gmail }}</td>
               <td>{{ user.user_ucode }}</td>
               <td>{{ user.createdAt }}</td>
-              <td>{{ user.status.translations.uz }}</td>
+              <td>{{ user.status?.translations?.uz || '—' }}</td>
               <td>
                 <i class="icon bi bi-eye" @click="viewUser(user)"></i>
                 <i class="icon bi bi-pencil-square" @click="openEditModal(user.user_ucode)"></i>
                 <i class="icon bi bi-trash" @click="deleteUser(user)"></i>
               </td>
+            </tr>
+            <tr v-if="!loading && filteredUsers.length === 0">
+              <td colspan="7" class="text-center">Ma'lumot topilmadi</td>
+            </tr>
+            <tr v-if="loading">
+              <td colspan="7" class="text-center">Yuklanmoqda...</td>
             </tr>
           </tbody>
         </table>
@@ -123,7 +128,7 @@
           <option>Bog‘lanilgan</option>
         </select>
 
-        <button @click="addLid">{{ editMode ? 'Saqlash' : 'Yaratish' }}</button>
+        <button @click="addLid" :disabled="saving">{{ editMode ? 'Saqlash' : 'Yaratish' }}</button>
       </div>
     </div>
   </div>
@@ -131,8 +136,23 @@
 
 <script>
 import * as XLSX from "xlsx";
-import axios from "axios";
-import store from "@/store";
+import { api, errorMessage } from "@/api";
+
+const emptyLid = () => ({
+  userCod: '',
+  name: '',
+  tel: '',
+  email: '',
+  nameUz: '',
+  nameRu: '',
+  nameZh: '',
+  weight: '',
+  m3: '',
+  density: '',
+  price: '',
+  warehouse: '',
+  status: 'Bog‘lanilmagan'
+});
 
 export default {
   data() {
@@ -140,173 +160,129 @@ export default {
       search: '',
       statusFilter: '',
       warehouseFilter: '',
-      orderFilter2: "new",
-      orderFilter:'',
+      orderFilter: 'new',
       modalVisible: false,
       editMode: false,
+      loading: false,
+      saving: false,
+      searchTimer: null,
       users: [],
-      modalUser: {
-        userCod: '',
-        name: '',
-        tel: '',
-        email: '',
-        nameUz: '',
-        nameRu: '',
-        nameZh: '',
-        weight: '',
-        m3: '',
-        density: '',
-        price: '',
-        warehouse: '',
-        status: 'Bog‘lanilmagan'
-      }
+      modalUser: emptyLid()
     };
   },
   computed: {
+    // Filtrlash serverda bajariladi, bu yerda faqat tartiblaymiz
     filteredUsers() {
-      let result = this.users.filter(user => {
-        const searchMatch = user.user_ucode?.toLowerCase().includes(this.search.toLowerCase());
-        const statusMatch = this.statusFilter ? user.status.code === this.statusFilter : true;
-        const warehouseMatch = this.warehouseFilter ? user.wharehouseUz === this.warehouseFilter : true;
-        return searchMatch && statusMatch && warehouseMatch;
-      });
-
-      if (this.orderFilter === 'Yangi boshida') {
+      const result = [...this.users];
+      if (this.orderFilter === 'new') {
         result.sort((a, b) => b.id - a.id);
-      } else if (this.orderFilter === 'Eski boshida') {
+      } else if (this.orderFilter === 'old') {
         result.sort((a, b) => a.id - b.id);
       }
-
       return result;
     }
   },
   methods: {
     async getUsers() {
-  try {
-    const token = localStorage.getItem('token');
-    
-    const params = {
-      page: 1,
-      limit: 10,
-      status: this.statusFilter || undefined,
-      wharehouse: this.warehouseFilter || undefined,
-      user_ucode: this.search || undefined,
-      sort: this.orderFilter === 'Yangi boshidan' ? 'new' : this.orderFilter === 'Eski boshidan' ? 'old' : undefined
-    };
-
-    const res = await axios.get('http://89.169.2.238:8002/api/v1/leads', {
-      headers: {
-        Authorization: `Bearer ${token}`
-      },
-      params
-    });
-
-    this.users = res.data.data;
-  } catch (error) {
-    console.error('APIdan foydalanuvchilarni olishda xatolik:', error);
-  }
-},
-      async addLid(){
-        try{
-          const token = localStorage.getItem('token');
-
-          const res = await axios.post('http://89.169.2.238:8002/api/v1/leads',{
-            user_ucode:this.modalUser.userCod,
-            phone_number:this.modalUser.tel,
-            gmail:this.modalUser.email,
-            weight:this.modalUser.weight,
-            m3:this.modalUser.m3,
-            // average_weight_kg:this.modalUser.userCod,
-            price:this.modalUser.price,
-            // status: this.orderFilter,
-            nameUz:this.modalUser.nameUz,
-            nameRu:this.modalUser.nameRu,
-            nameZh:this.modalUser.nameZh,
-            wharehouseUz:this.modalUser.warehouse,
-            // wharehouseRu:this.modalUser.warehouse,
-            // wharehouseZh:this.modalUser.warehouse,
-            wharehouse_code:this.modalUser.userCod
-          },{
-            headers:{
-              Authorization:`Bearer ${token}`
-            }
-          })
-          this.closeModal()
-        } catch{
-          console.log('error');
-        }
+      this.loading = true;
+      try {
+        const params = {
+          page: 1,
+          limit: 10,
+          status: this.statusFilter || undefined,
+          wharehouse: this.warehouseFilter || undefined,
+          user_ucode: this.search.trim() || undefined,
+          sort: this.orderFilter || undefined
+        };
+        const res = await api.get('/leads', { params });
+        this.users = res.data.data || [];
+      } catch (error) {
+        console.error('APIdan foydalanuvchilarni olishda xatolik:', error);
+      } finally {
+        this.loading = false;
+      }
+    },
+    async addLid() {
+      if (!this.modalUser.userCod || !this.modalUser.nameUz) {
+        alert("Foydalanuvchi kodi va ismi (UZ) majburiy.");
+        return;
+      }
+      this.saving = true;
+      try {
+        await api.post('/leads', {
+          user_ucode: this.modalUser.userCod,
+          phone_number: this.modalUser.tel,
+          gmail: this.modalUser.email,
+          weight: this.modalUser.weight,
+          m3: this.modalUser.m3,
+          price: this.modalUser.price,
+          nameUz: this.modalUser.nameUz,
+          nameRu: this.modalUser.nameRu,
+          nameZh: this.modalUser.nameZh,
+          wharehouseUz: this.modalUser.warehouse,
+          wharehouse_code: this.modalUser.userCod
+        });
+        this.closeModal();
+        this.getUsers();
+      } catch (error) {
+        alert("Xatolik: " + errorMessage(error));
+      } finally {
+        this.saving = false;
+      }
     },
     openAddModal() {
       this.editMode = false;
-      this.modalUser = {
-        userCod: '',
-        name: '',
-        tel: '',
-        email: '',
-        nameUz: '',
-        nameRu: '',
-        nameZh: '',
-        weight: '',
-        m3: '',
-        density: '',
-        price: '',
-        warehouse: '',
-        status: 'Bog‘lanilmagan'
-      };
+      this.modalUser = emptyLid();
       this.modalVisible = true;
     },
     openEditModal(id) {
-      this.$router.push(`/lidEdit?id=${id}`);
+      this.$router.push({ path: '/lidEdit', query: { id } });
     },
     closeModal() {
       this.modalVisible = false;
     },
-    saveUser() {
-      if (!this.modalUser.userCod || !this.modalUser.nameUz) {
-        alert("Foydalanuvchi kodi va ismi (UZ) majburiy.");        
-      }else{
-        console.log('123456');
-        this.closeModal();
-      }
-
-
-    },
-    deleteUser(user) {
-      if (confirm("Rostdan ham o‘chirmoqchimisiz?")) {
+    async deleteUser(user) {
+      if (!confirm("Rostdan ham o‘chirmoqchimisiz?")) return;
+      try {
+        await api.delete(`/leads/${user.id}`);
         this.users = this.users.filter(u => u.id !== user.id);
+      } catch (error) {
+        alert("O‘chirishda xatolik: " + errorMessage(error));
       }
     },
     viewUser(user) {
-      alert(`Ismi: ${user.name}\nTel: ${user.tel}\nEmail: ${user.email}`);
+      alert(`Kodi: ${user.user_ucode || '—'}\nTel: ${user.phone_number || '—'}\nEmail: ${user.gmail || '—'}`);
     },
-    // async orderFilter1(){
-    //   if(this.orderFilter == "Yangi boshidan"){
-    //     this.orderFilter2 = "new"
-    //     const users = await axios.get('http://89.169.2.238:8002/api/v1/leads',{
-    //       sort:this.orderFilter2
-    //     })
-    //     console.log(this.orderFilter2,this.orderFilter);
-    //   } else if(this.orderFilter=="Eski boshidan"){
-    //     this.orderFilter2 = "old"
-    //     console.log(this.orderFilter2,this.orderFilter);
-    //   }
-    // },
     exportExcel() {
-      const ws = XLSX.utils.json_to_sheet(this.filteredUsers);
+      const rows = this.filteredUsers.map((u, i) => ({
+        '#': i + 1,
+        'Telefon': u.phone_number,
+        'Elektron pochta': u.gmail,
+        'Foydalanuvchi kodi': u.user_ucode,
+        'Yaratilgan sana': u.createdAt,
+        'Holati': u.status?.translations?.uz
+      }));
+      const ws = XLSX.utils.json_to_sheet(rows);
       const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, ws, "Foydalanuvchilar");
-      XLSX.writeFile(wb, "users.xlsx");
+      XLSX.utils.book_append_sheet(wb, ws, "Lidlar");
+      XLSX.writeFile(wb, "lids.xlsx");
     }
   },
   watch: {
-  statusFilter: 'getUsers',
-  warehouseFilter: 'getUsers',
-  search: 'getUsers',
-  orderFilter: 'getUsers'
-},
+    statusFilter: 'getUsers',
+    warehouseFilter: 'getUsers',
+    orderFilter: 'getUsers',
+    // Har bir harfda so'rov yubormaslik uchun debounce
+    search() {
+      clearTimeout(this.searchTimer);
+      this.searchTimer = setTimeout(this.getUsers, 400);
+    }
+  },
   mounted() {
-    store.state.sideNav="Lidlar",
     this.getUsers()
+  },
+  beforeUnmount() {
+    clearTimeout(this.searchTimer);
   }
 };
 </script>

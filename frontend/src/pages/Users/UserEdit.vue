@@ -12,11 +12,11 @@
         </div>
         <div class="row">
           <label>Foydalanuvchi kodi</label>
-          <input v-model="user.code" type="text" class="form-input" disabled />
+          <input v-model="user.userCod" type="text" class="form-input" disabled />
         </div>
         <div class="row">
           <label>Telefon</label>
-          <input v-model="user.phone" type="text" class="form-input" />
+          <input v-model="user.tel" type="text" class="form-input" />
         </div>
         <div class="row">
           <label>Email</label>
@@ -71,7 +71,7 @@
 </template>
 
 <script>
-import axios from "axios";
+import { mockApi } from "@/api";
 
 export default {
   data() {
@@ -79,8 +79,8 @@ export default {
       user: {
         id: null,
         name: "",
-        code: "",
-        phone: "",
+        userCod: "",
+        tel: "",
         email: ""
       },
       orders: [],
@@ -92,7 +92,7 @@ export default {
   computed: {
     filteredOrders() {
       let filtered = this.orders.filter(order => {
-        const matchSearch = order.orderNumber.includes(this.search);
+        const matchSearch = String(order.orderNumber ?? "").includes(this.search);
         const matchStatus = this.filterStatus ? order.status === this.filterStatus : true;
         return matchSearch && matchStatus;
       });
@@ -114,8 +114,13 @@ export default {
     ortga(){
       this.$router.push('/users')
     },
+    // Users sahifasidan ?id=<id> keladi
+    userId() {
+      return this.$route.query.id;
+    },
     loadUser() {
-      axios.get("http://localhost:3000/users/1")
+      if (!this.userId()) return;
+      mockApi.get(`/users/${this.userId()}`)
         .then(res => {
           this.user = res.data;
         })
@@ -124,7 +129,8 @@ export default {
         });
     },
     loadOrders() {
-      axios.get("http://localhost:3000/orders?userId=1")
+      if (!this.userId()) return;
+      mockApi.get("/orders", { params: { userId: this.userId() } })
         .then(res => {
           this.orders = res.data.map(order => ({
             ...order,
@@ -136,7 +142,7 @@ export default {
         });
     },
     saveUser() {
-      axios.put(`http://localhost:3000/users/${this.user.id}`, this.user)
+      mockApi.put(`/users/${this.user.id}`, this.user)
         .then(() => {
           alert("Foydalanuvchi saqlandi!");
         })

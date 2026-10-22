@@ -4,16 +4,16 @@
       <h2>Buyurtmani tahrirlash</h2>
       <form @submit.prevent="saveOrder">
         <div class="form-row">
-          <input v-model="localOrder.orderCode" placeholder="Buyurtma raqami" />
-          <input v-model="localOrder.userCode" placeholder="Foydalanuvchi kodi" />
+          <input v-model="localOrder.order_number" placeholder="Buyurtma raqami" />
+          <input v-model="localOrder.user_ucode" placeholder="Foydalanuvchi kodi" />
         </div>
         <div class="form-row">
-          <input v-model="localOrder.phone" placeholder="Telefon raqam" />
-          <input v-model="localOrder.email" placeholder="Email manzili" />
+          <input v-model="localOrder.phone_number" placeholder="Telefon raqam" />
+          <input v-model="localOrder.gmail" placeholder="Email manzili" />
         </div>
         <div class="form-row">
-          <input v-model.number="localOrder.miqdor" placeholder="Umumiy miqdor" type="number" />
-          <input v-model.number="localOrder.receivedAmount" placeholder="Qabul qilingan miqdor" type="number" />
+          <input v-model.number="localOrder.quantity" placeholder="Umumiy miqdor" type="number" />
+          <input v-model.number="localOrder.received_quantity" placeholder="Qabul qilingan miqdor" type="number" />
         </div>
         <div class="form-row">
           <input v-model="localOrder.nameUz" placeholder="Mahsulot nomi (UZ)" />
@@ -21,22 +21,22 @@
         </div>
         <div class="form-row">
           <input v-model="localOrder.nameZh" placeholder="Mahsulot nomi (ZH)" />
-          <input v-model="localOrder.warehouseZh" placeholder="Ombor nomi (ZH)" />
+          <input v-model="localOrder.wharehouseZh" placeholder="Ombor nomi (ZH)" />
         </div>
         <div class="form-row">
-          <input v-model="localOrder.warehouseRu" placeholder="Ombor nomi (RU)" />
-          <input v-model="localOrder.warehouseUz" placeholder="Ombor nomi (UZ)" />
+          <input v-model="localOrder.wharehouseRu" placeholder="Ombor nomi (RU)" />
+          <input v-model="localOrder.wharehouse_code" placeholder="Ombor kodi" />
         </div>
         <div class="form-row">
           <input v-model.number="localOrder.weight" placeholder="Vazni (kg)" type="number" />
-          <input v-model.number="localOrder.volume" placeholder="Hajmi (m³)" type="number" />
+          <input v-model.number="localOrder.m3" placeholder="Hajmi (m³)" type="number" />
         </div>
         <div class="form-row">
-          <input v-model.number="localOrder.density" placeholder="Zichlik (kg/m³)" type="number" />
-          <input v-model.number="localOrder.price" placeholder="Yetkazib berish narxi" type="number" />
+          <input v-model.number="localOrder.average_weight_kg" placeholder="Zichlik (kg/m³)" type="number" />
+          <input v-model.number="localOrder.delivery_price" placeholder="Yetkazib berish narxi" type="number" />
         </div>
         <div class="form-row">
-          <select v-model="localOrder.warehouse">
+          <select v-model="localOrder.wharehouseUz">
             <option disabled value="">Ombor tanlang</option>
             <option>Yiwu</option>
             <option>Foshan</option>
@@ -57,7 +57,7 @@
           </select>
         </div>
         <div class="form-row bnt">
-          <button type="submit" class="btn btn-primary" @click="$emit('close')">Saqlash</button>
+          <button type="submit" class="btn btn-primary">Saqlash</button>
           <button type="button" class="btn btn-secondary" @click="$emit('close')">Bekor qilish</button>
         </div>
       </form>
@@ -67,6 +67,7 @@
 
 <script>
 export default {
+  emits: ["save", "close"],
   props: {
     order: {
       type: Object,

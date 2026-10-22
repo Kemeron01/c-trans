@@ -6,47 +6,23 @@
                 <div class="card">
                     <i class="bi bi-pencil-square" @click="modalToggle()"></i>
                     <table class="table">
-                      <tbody v-for="user in users" :key="user.id">
-                        <tr>
-                          <td>Foydalanuvchi kodi: <span>{{ user.userCod }}</span></td>
-                        </tr>
-                        <tr>
-                          <td>Telefon: <span>{{ user.tel }}</span></td>
-                        </tr>
-                        <tr>
-                          <td>Elektron pochta: <span>{{ user.email }}</span></td>
-                        </tr>
-                        <tr>
-                          <td>Name (UZ): <span>{{ user.nameUz }}</span></td>
-                        </tr>
-                        <tr>
-                          <td>Name (RU): <span>{{ user.nameRu }}</span></td>
-                        </tr>
-                        <tr>
-                          <td>Name (ZH): <span>{{ user.nameZh }}</span></td>
-                        </tr>
-                        <tr>
-                          <td>Vazn (kg): <span>{{ user.weight }}</span></td>
-                        </tr>
-                        <tr>
-                          <td>M³: <span>{{ user.m3 }}</span></td>
-                        </tr>
-                        <tr>
-                          <td>O'rtacha og'irlik (kg/m³): <span>{{ user.density }}</span> </td>
-                        </tr>
-                        <tr>
-                          <td>Sklad:  <span>{{ user.warehouse }}</span></td>
-                        </tr>
-                        <tr>
-                          <td>Narx: <span>{{ user.price }}</span></td>
-                        </tr>
-                        <tr>
-                          <td>Yaratilgan sana: <span>{{ user.create }}</span></td>
-                        </tr>
-                        <tr>
-                          <td>Holat: <span>{{ user.status }}</span></td>
-                        </tr>
-
+                      <tbody v-if="lead">
+                        <tr><td>Foydalanuvchi kodi: <span>{{ lead.user_ucode }}</span></td></tr>
+                        <tr><td>Telefon: <span>{{ lead.phone_number }}</span></td></tr>
+                        <tr><td>Elektron pochta: <span>{{ lead.gmail }}</span></td></tr>
+                        <tr><td>Name (UZ): <span>{{ lead.nameUz }}</span></td></tr>
+                        <tr><td>Name (RU): <span>{{ lead.nameRu }}</span></td></tr>
+                        <tr><td>Name (ZH): <span>{{ lead.nameZh }}</span></td></tr>
+                        <tr><td>Vazn (kg): <span>{{ lead.weight }}</span></td></tr>
+                        <tr><td>M³: <span>{{ lead.m3 }}</span></td></tr>
+                        <tr><td>O'rtacha og'irlik (kg/m³): <span>{{ lead.average_weight_kg }}</span></td></tr>
+                        <tr><td>Sklad: <span>{{ lead.wharehouseUz }}</span></td></tr>
+                        <tr><td>Narx: <span>{{ lead.price }}</span></td></tr>
+                        <tr><td>Yaratilgan sana: <span>{{ lead.createdAt }}</span></td></tr>
+                        <tr><td>Holat: <span>{{ lead.status?.translations?.uz }}</span></td></tr>
+                      </tbody>
+                      <tbody v-else>
+                        <tr><td>{{ loading ? 'Yuklanmoqda...' : 'Lid topilmadi' }}</td></tr>
                       </tbody>
                     </table>
                 </div>
@@ -110,20 +86,18 @@
     </div>
 </template>
 <script>
-import store from '@/store';
 import Buyurtmalar from "../Buyurtmalar/Buyurtmalar.vue";
-import axios from "axios";
+import { api } from "@/api";
 export default {
     components:{
         Buyurtmalar
     },
     data() {
   return {
-    search: '',
     modalVisible: false,
-    editMode: false,
-
-    users: [],
+    editMode: true,
+    loading: false,
+    lead: null,
 
     modalUser: {
       userCod: '',
@@ -147,21 +121,26 @@ methods:{
         this.$router.push("/lids")
     },
     modalToggle(){
-      if(this.modalVisible){
-        this.modalVisible = !this.modalVisible
-        console.log("1");
-      }else{
-        this.modalVisible = !this.modalVisible
-        console.log("2");
+      this.modalVisible = !this.modalVisible
+    },
+    // Lids sahifasidan ?id=<user_ucode> keladi
+    async loadLead(){
+      const code = this.$route.query.id
+      if (!code) return
+      this.loading = true
+      try {
+        const res = await api.get('/leads', { params: { user_ucode: code } })
+        const list = res.data.data || []
+        this.lead = list.find(l => l.user_ucode === code) || list[0] || null
+      } catch (error) {
+        console.error('Lidni yuklashda xatolik:', error)
+      } finally {
+        this.loading = false
       }
-
     }
 },
 mounted(){
-    axios.get('http://localhost:3000/users')
-        .then((res)=>{
-            this.users = res.data
-        })
+    this.loadLead()
 }
 }
 </script>

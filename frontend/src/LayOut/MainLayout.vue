@@ -12,11 +12,8 @@
     </div>
 </template>
 <script>
-import { RouterLink, RouterView } from 'vue-router';
-import Dashboard from '@/views/Dashboard.vue';
 import Sidebar from '@/components/Sidebar.vue'
 import Navbar from '@/components/Navbar.vue'
-import store from "@/store/index";
 export default {
     data(){
         return{
@@ -25,7 +22,6 @@ export default {
     components:{
         Sidebar,
         Navbar,
-        Dashboard,
     },
 }
 </script>

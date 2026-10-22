@@ -1,10 +1,9 @@
-<script >
-import {RouterLink,RouterView} from 'vue-router'
+<script>
 export default{
 }
 </script>
 <template>
-  <h1><RouterView /> </h1>
+  <RouterView />
 </template>
 
 <style scoped></style>

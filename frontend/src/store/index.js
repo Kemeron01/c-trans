@@ -5,10 +5,14 @@ const store = createStore({
         return {
             isCollapsed:true,
             count:0,
-            user:null,
-            sideNav:"SiteNav"
+            user:null
+        }
+    },
+    mutations:{
+        toggleSidebar(state){
+            state.isCollapsed = !state.isCollapsed
         }
     }
 })
 
-export default store 
+export default store

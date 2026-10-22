@@ -8,7 +8,9 @@
           type="text"
           class="name"
           v-model="name"
-          placeholder="emailingizni kiriting"
+          placeholder="Login"
+          autocomplete="username"
+          @keyup.enter="login1"
         />
   
         <!-- Parol input va ko‘zcha -->
@@ -17,22 +19,27 @@
           :type="showPassword ? 'text' : 'password'"
             v-model="password"
             placeholder="Parolingiz"
+            autocomplete="current-password"
+            @keyup.enter="login1"
             />
             <button type="button" class="eye "  @click="togglePassword">
               <i class="" :class="{'bi bi-eye':showPassword,'bi bi-eye-slash':!showPassword}"></i>
             </button>
         </div>
   
+        <p v-if="error" class="error">{{ error }}</p>
+
         <!-- Kirish tugmasi -->
-        <button class="btn btn btn-outline-primary" type="button" @click="login1" >Kirish</button>
+        <button class="btn btn btn-outline-primary" type="button" :disabled="loading" @click="login1" >
+          {{ loading ? 'Kirilmoqda...' : 'Kirish' }}
+        </button>
       </div>
     </div>
   </template>
   
   <script>
-  import router from '@/router'
-import axios from 'axios'
 import { ref } from 'vue'
+import { api, errorMessage } from '@/api'
   import { useRouter } from 'vue-router'
   
   export default {
@@ -42,32 +49,34 @@ import { ref } from 'vue'
       const name = ref('')
       const password = ref('')
       const showPassword = ref(false)
+      const loading = ref(false)
+      const error = ref('')
   
       const togglePassword = () => {
         showPassword.value = !showPassword.value
       }
   
-      const login = () => {
-        if (name.value && password.value) {
-
-          // router.push('/app/dashboard')
-        } else {
-          alert("Ism va parolni to‘ldiring")
-        }
-      }
       const login1 = async () =>{
+        error.value = ''
+        if (!name.value.trim() || !password.value) {
+          error.value = "Login va parolni to‘ldiring"
+          return
+        }
+        loading.value = true
         try {
-          const response = await axios.post('http://89.169.2.238:8002/api/v1/auth/login/admin',{
-            username: name.value,
+          const response = await api.post('/auth/login/admin',{
+            username: name.value.trim(),
             password: password.value
           })
 
           const token = response.data.token
+          if (!token) throw new Error("Serverdan token kelmadi")
           localStorage.setItem('token',token)
-          console.log('token',token);
           router.push('/dashboard')
-        }catch(error){
-          console.log('ishlamadi', error.response?.data?.message || 'serverga ulanib bolmadi');
+        }catch(e){
+          error.value = errorMessage(e)
+        } finally {
+          loading.value = false
         }
       }
 
@@ -80,12 +89,8 @@ import { ref } from 'vue'
         password,
         showPassword,
         togglePassword,
-        login,
-      }
-    },
-    data(){
-      return{
-        eyesOff:""
+        loading,
+        error,
       }
     },
   }
@@ -133,6 +138,12 @@ import { ref } from 'vue'
     cursor: pointer;
   }
   
+  .error {
+    color: #dc3545;
+    font-size: 14px;
+    margin: 5px 0 0;
+  }
+
   button.btn {
     width: 100%;
     padding: 12px;

@@ -104,8 +104,7 @@
 
 <script>
 import IMask from "imask";
-import store from "@/store/index.js";
-import axios from "axios";
+import { mockApi } from "@/api";
 
 export default {
   data() {
@@ -128,8 +127,7 @@ export default {
     };
   },
   mounted() {
-    store.state.sideNav="Userlar"
-    axios.get("http://localhost:3000/users")
+    mockApi.get("/users")
       .then((res) => {
         this.users = res.data.map((user) => ({
           ...user,
@@ -153,13 +151,13 @@ export default {
   computed: {
     filteredUsers() {
       return this.users.filter((user) => {
-        const nameMatch = user.name?.toLowerCase().includes(this.searchQuery.toLowerCase());
-        const codeMatch = user.userCod?.toLowerCase().includes(this.codeQuery?.toLowerCase() || "");
+        const nameMatch = (user.name || "").toLowerCase().includes(this.searchQuery.toLowerCase());
+        const codeMatch = (user.userCod || "").toLowerCase().includes(this.codeQuery.toLowerCase());
         return nameMatch && codeMatch;
       });
     },
     paginatedUsers() {
-      const start = (this.currentPage==0 ? this.currentPage==2 : this.currentPage - 1 ) * this.pageSize;
+      const start = (this.currentPage - 1) * this.pageSize;
       const end = start + this.pageSize;
       return this.filteredUsers.slice(start, end);
     },
@@ -208,10 +206,10 @@ export default {
       this.toggleModal()
     },
     UserEdit(user) {
-      this.$router.push('/userEdit')
-      
+      this.$router.push({ path: '/userEdit', query: { id: user.id } })
     },
     deleteUser(id) {
+      if (!confirm("Foydalanuvchini o‘chirmoqchimisiz?")) return;
       this.users = this.users.filter((user) => user.id !== id);
       this.$store.state.count = this.users.length;
     },
