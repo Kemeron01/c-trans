@@ -2,6 +2,7 @@ import { type Translation } from './types'
 
 export const uz: Translation = {
   common: {
+    notFoundHint: "Yozuv topilmadi yoki unga kirish huquqingiz yo'q.",
     delete: "O'chirish",
     deleted: "O'chirildi.",
     save: 'Saqlash',
@@ -99,6 +100,8 @@ export const uz: Translation = {
     noResults: 'Hech narsa topilmadi.',
   },
   auth: {
+    resetDemo: "Demo ma'lumotlarni tiklash",
+    demoPhones: 'Demo mijozlar (moklar, SMS-kod {{code}})',
     staffTitle: 'Xodimlar uchun kirish',
     staffDescription:
       "Login va parolni administrator beradi. Parolni faqat administrator o'zgartira oladi.",
@@ -118,11 +121,33 @@ export const uz: Translation = {
     demoAccounts: 'Demo hisoblar (moklar, parol {{password}})',
   },
   landing: {
+    lead: "Ombor katalogidan tovarlarni sotib olamiz va posilkalaringizni avia yoki fura orqali yetkazamiz. Narx — og'irlik bo'yicha, to'lov — bog'langan kartadan avtomatik, kuzatuv — xaritada.",
+    calculatorHint: "Ombor tariflari bo'yicha taxminiy yetkazish narxi.",
+    howTitle: 'Bu qanday ishlaydi',
+    step1: {
+      title: 'Ariza qoldiring',
+      text: "Yukni tasvirlang va trek-raqamni ko'rsating yoki katalogdan tovar tanlang.",
+    },
+    step2: {
+      title: 'Yukni tortamiz',
+      text: "Omborda yuk tortiladi va o'lchanadi — narx aniq bo'ladi, to'lov kartadan yechiladi.",
+    },
+    step3: {
+      title: 'Xaritada kuzating',
+      text: "Jo'natma nazorat nuqtalaridan o'tadi — yo'nalish va holatni ko'rasiz.",
+    },
+    step4: {
+      title: "O'zbekistonda oling",
+      text: 'Ombordan olib keting yoki kuryer chaqiring.',
+    },
     title: "Xitoy, Rossiya va AQShdan O'zbekistonga yuk yetkazib berish",
-    subtitle: 'Mijozlar platformasi ishlab chiqilmoqda.',
     staffLogin: 'Xodimlar uchun kirish',
   },
   errors: {
+    outdatedTitle: 'Yangi versiya chiqdi',
+    outdatedDesc:
+      "Sahifa eskirgan — yangilanish yuklanmoqda. Agar hech narsa bo'lmasa, sahifani yangilang.",
+    reload: 'Sahifani yangilash',
     generic: "Nimadir noto'g'ri ketdi!",
     noContent: "Ma'lumot yo'q.",
     notModified: "Ma'lumotlar o'zgarmadi.",
@@ -354,6 +379,7 @@ export const uz: Translation = {
     noTariff: "Bunday og'irlik uchun tarif yo'q.",
   },
   orders: {
+    notFound: 'Buyurtma topilmadi',
     description: 'Omboringizning katalog buyurtmalari va yetkazish arizalari.',
     number: 'Raqam',
     client: 'Mijoz',
@@ -407,6 +433,7 @@ export const uz: Translation = {
     rejectedToast: 'Lid rad etish bilan yopildi.',
   },
   shipments: {
+    notFound: "Jo'natma topilmadi",
     description:
       'Furalar va avia reyslar: bitta ombor va yetkazish usulidagi turli mijozlar buyurtmalari.',
     number: 'Raqam',
@@ -443,6 +470,186 @@ export const uz: Translation = {
     arriveConfirm:
       "Buyurtmalar ({{count}}) «O'zbekistonga yetib keldi» holatiga o'tadi.",
     removeConfirm: "Buyurtma jo'natishga tayyorlar ro'yxatiga qaytadi.",
+  },
+  dashboard: {
+    description: '«{{warehouse}}» omborining buyurtmalari va tushumi.',
+    descriptionAll: "Barcha omborlar bo'yicha buyurtmalar va tushum.",
+    period: {
+      day: 'Bugun',
+      week: '7 kun',
+      month: '30 kun',
+      custom: 'Davr',
+    },
+    from: 'Dan',
+    to: 'Gacha',
+    ordersCount: 'Buyurtmalar',
+    revenueUsd: 'Tushum, USD',
+    revenueUzs: 'Tushum, UZS',
+    active: 'Faol buyurtmalar',
+    activeHint: 'yetkazilmagan va bekor qilinmagan',
+    revenueByDay: 'Kunlik tushum, USD',
+    ordersByDay: 'Kunlik yangi buyurtmalar',
+    activeByStatus: "Holatlar bo'yicha faol buyurtmalar",
+    noActive: "Faol buyurtmalar yo'q.",
+    table: "Grafik ma'lumotlari",
+  },
+  clients: {
+    description: 'Omboringiz orqali buyurtmalari bor mijozlar.',
+    orders: 'Buyurtmalar',
+    active: 'faol: {{count}}',
+    total: "To'langan",
+    lastOrder: 'Oxirgi buyurtma',
+    search: 'F.I.Sh., mijoz kodi, telefon...',
+  },
+  reviews: {
+    rating: 'Baho {{value}} / 5',
+    order: 'Buyurtma',
+    delivery: 'Yetkazish',
+    product: 'Tovar sifati',
+    deliveryRating: 'Yetkazish bahosi',
+    description:
+      "Yetkazilgandan keyingi mijoz sharhlari. Faqat admin panelda ko'rinadi.",
+    search: 'Buyurtma raqami, mijoz...',
+    commentPlaceholder: 'Izoh (ixtiyoriy)',
+  },
+  notifications: {
+    title: 'Bildirishnomalar',
+    empty: "Hozircha bildirishnomalar yo'q.",
+    status: '{{number}} buyurtma: {{status}}',
+    paymentFailed:
+      "{{number}} buyurtma: to'lov yechilmadi. Kartani tekshiring.",
+  },
+  site: {
+    nav: {
+      catalog: 'Katalog',
+      send: "Yuk jo'natish",
+      orders: 'Buyurtmalarim',
+      cart: 'Savat',
+    },
+    menu: 'Menyu',
+    account: 'Shaxsiy kabinet',
+    signIn: 'Kirish',
+    uzbekistan: "O'zbekiston",
+  },
+  clientAuth: {
+    title: 'Telefon raqami orqali kirish',
+    phoneHint: 'SMS-kod yuboramiz. Yangi hisob avtomatik yaratiladi.',
+    codeHint: '{{phone}} raqamiga yuborilgan SMS-kodni kiriting.',
+    phone: 'Telefon',
+    getCode: 'Kod olish',
+    code: 'SMS-kod',
+    signIn: 'Kirish',
+    changePhone: "Raqamni o'zgartirish",
+    resend: 'Kodni qayta yuborish',
+    resendIn: '{{seconds}} s dan keyin qayta',
+    tooManyAttempts: "Urinishlar juda ko'p. Yangi kod so'rang.",
+  },
+  account: {
+    code: 'Kodingiz',
+    welcome:
+      "Xush kelibsiz! F.I.Sh. va yetkazish manzilini to'ldiring, so'ng to'lov uchun kartani bog'lang.",
+    profile: 'Profil',
+    address: 'Yetkazish manzili',
+    addressHint: 'Kuryer orqali yetkazish uchun ishlatiladi.',
+    cards: "To'lov kartalari",
+    cardsHint: 'Yechib olish asosiy kartadan avtomatik amalga oshadi.',
+    addCard: "Karta bog'lash",
+    default: 'Asosiy',
+    confirm: 'Tasdiqlash',
+    makeDefault: 'Asosiy qilish',
+    noCards: "Hozircha kartalar yo'q.",
+    removeCard: "Kartani o'chirish",
+    cardNumberInvalid: 'Karta raqami — 16 ta raqam.',
+    expiryInvalid: 'Muddat OO/YY formatida.',
+    addCardHint:
+      "Uzcard / Humo. Karta ma'lumotlari to'lov provayderiga uzatiladi, biz faqat tokenni saqlaymiz.",
+    cardNumber: 'Karta raqami',
+    expiry: 'Muddat',
+    cardConfirmed: "Karta bog'landi.",
+    wrongCode: "Kod noto'g'ri.",
+    confirmCard: 'Kartani tasdiqlash',
+    confirmCardHint:
+      '{{card}} kartasi uchun bankdan kelgan SMS-kodni kiriting.',
+  },
+  checkout: {
+    receive: 'Qabul qilish usuli',
+    pickupHint: "O'zbekistondagi ombordan olib ketasiz.",
+    courierHint: "Manzilga yetkazamiz, narx og'irlikka bog'liq.",
+    pickupFrom: 'Olib ketish: {{address}}',
+    preliminaryTotal: 'Taxminan',
+    preliminaryHint:
+      "Aniq narx — omborda tortilgandan keyin. To'lov faqat shundan so'ng yechiladi.",
+    placed: '{{number}} buyurtmasi rasmiylashtirildi.',
+    emptyCart: "Savat bo'sh",
+    delivery: 'Yetkazish',
+    summary: 'Jami',
+    signInToOrder: 'Kirish va rasmiylashtirish',
+    fillProfile: "Buyurtma berish uchun profilni to'ldiring.",
+    needCard: "Buyurtma uchun bog'langan karta kerak.",
+    placeOrder: 'Buyurtma berish',
+    autoCharge:
+      "Tovarni zaxiraga olamiz, to'lov bir necha daqiqadan so'ng kartadan yechiladi.",
+  },
+  clientCatalog: {
+    description:
+      "Xitoy, Rossiya va AQShdagi omborlardan O'zbekistonga yetkaziladigan tovarlar.",
+    toCart: 'Savatga ({{count}})',
+    empty: "Bu omborda hozircha tovarlar yo'q.",
+    otherWarehouse: 'Boshqa ombordagi tovarlar',
+    otherWarehouseHint:
+      "Bitta buyurtmada — bitta ombor tovarlari. Savatni tozalab, bu tovarni qo'shamizmi?",
+    replaceCart: "Tozalash va qo'shish",
+    available: 'mavjud: {{count}}',
+    outOfStock: 'mavjud emas',
+    addToCart: 'Savatga',
+  },
+  send: {
+    created: "{{number}} arizasi yaratildi. Menejer siz bilan bog'lanadi.",
+    description:
+      "Yukingizni xorijdagi ombordan yetkazamiz. Sotuvchining trek-raqamini ko'rsating — posilkani omborda topamiz.",
+    from: 'Qayerdan',
+    warehouseAddress: 'Sotuvchi uchun ombor manzili: {{address}}',
+    cargoDescription: "Nima jo'natyapsiz",
+    cargoPlaceholder: 'Masalan: kiyim, 2 quti',
+    trackingHint:
+      "Sotuvchining trek-raqamlari — bo'sh joy yoki yangi qatordan.",
+    approxHint: "Taxminan — aniq og'irlik omborda aniqlanadi.",
+    cardLater:
+      "To'lov tortilgandan keyin yechiladi — kartani oldindan bog'lang.",
+    submit: 'Ariza yuborish',
+    afterSubmit:
+      "Ariza ombor menejeriga tushadi: u siz bilan bog'lanib, jo'natishni kelishadi.",
+  },
+  clientOrders: {
+    empty: "Hozircha buyurtmalar yo'q",
+    emptyHint: "Yukingizni jo'nating yoki katalogdan tovar buyurtma qiling.",
+    paid: "To'lov o'tdi.",
+    paymentFailed: "To'lov yechilmadi",
+    paymentFailedHint:
+      "Buyurtma to'lanmaguncha jo'natilmaydi. To'lovni takrorlang yoki kartani almashtiring.",
+    retry: "To'lovni takrorlash",
+    changeCard: 'Kartani almashtirish',
+    leadHint:
+      "Ombor menejeri jo'natishni kelishish uchun siz bilan bog'lanadi.",
+    sendToWarehouse: "Yukni omborga jo'nating",
+    tracking: 'Yukim qayerda',
+    inUzs: "So'mda (joriy kurs bo'yicha)",
+    reviewThanks: 'Sharh uchun rahmat!',
+    cancelConfirm: '{{number}} buyurtmasini bekor qilasizmi?',
+    leaveReview: 'Buyurtmani baholang',
+    sendReview: 'Sharh yuborish',
+  },
+  progress: {
+    created: 'Rasmiylashtirildi',
+    lead_new: 'Ariza',
+    awaiting_arrival: 'Yuk kutilmoqda',
+    received: 'Qabul qilindi',
+    paid: "To'landi",
+    assembling: "Yig'ish",
+    ready_to_ship: "Jo'natishga",
+    in_transit: "Yo'lda",
+    arrived_uz: "O'zbekistonda",
+    delivered: 'Yetkazildi',
   },
   dataTable: {
     filter: 'Filtr...',

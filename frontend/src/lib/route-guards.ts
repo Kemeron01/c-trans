@@ -47,3 +47,25 @@ export function firstAllowedUrl(user: CurrentUser) {
     .flatMap((group) => group.items)
     .find((item) => canAccess(user, item.section))?.url
 }
+
+/** beforeLoad of client pages: signed-in clients only; staff go to /admin. */
+export async function loadClientUser(
+  queryClient: QueryClient,
+  location: ParsedLocation
+): Promise<CurrentUser> {
+  const toSignIn = () =>
+    redirect({ to: '/sign-in', search: { redirect: location.href } })
+  if (!useAuthStore.getState().accessToken) throw toSignIn()
+  let user: CurrentUser
+  try {
+    user = await queryClient.ensureQueryData(meQueryOptions())
+  } catch (error) {
+    if (error instanceof AxiosError && error.response?.status === 401) {
+      useAuthStore.getState().reset()
+      throw toSignIn()
+    }
+    throw error
+  }
+  if (isStaff(user)) throw redirect({ to: '/admin' })
+  return user
+}

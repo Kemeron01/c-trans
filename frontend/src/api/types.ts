@@ -276,6 +276,8 @@ export type Order = {
   cargo: Cargo | null // delivery requests
   lead: LeadInfo | null // delivery requests
   shipment: { id: number; number: string } | null
+  /** Set once the client left a review (one per order). */
+  review_id: number | null
   history: StatusHistoryEntry[]
   created_at: string
 }
@@ -304,4 +306,107 @@ export type Shipment = {
   arrived_at: string | null
   order_ids: number[]
   checkpoints: Checkpoint[]
+}
+
+// ---- Stage 4: analytics ----
+
+export type RatedComment = {
+  rating: 1 | 2 | 3 | 4 | 5
+  comment: string
+}
+
+/** One review per order (section 11); `product` only for catalog orders. */
+export type Review = {
+  id: number
+  order_id: number
+  order_number: string
+  order_type: OrderType
+  client: ClientRef
+  warehouse: WarehouseSummary // origin
+  delivery: RatedComment
+  product: RatedComment | null
+  created_at: string
+}
+
+export type ClientSummary = ClientRef & {
+  email: string | null
+  orders_count: number
+  active_orders: number
+  /** Charged, not cancelled. */
+  total_usd: number
+  last_order_at: string | null
+}
+
+export type DashboardStats = {
+  /** Orders not delivered and not cancelled, now (not period-bound). */
+  active_by_status: Partial<Record<OrderStatus, number>>
+  orders_count: number
+  revenue_usd: number
+  revenue_uzs: number
+  /** One point per day of the period. */
+  series: { date: string; orders: number; revenue_usd: number }[]
+}
+
+// ---- Stage 5: client platform ----
+
+export type ClientProfile = {
+  client_code: string
+  phone: string
+  full_name: string
+  email: string | null
+  address: string
+}
+
+/** Tokenized card at the payment provider (Payme / Click). */
+export type PaymentCard = {
+  id: number
+  /** "8600 **** **** 1234" */
+  mask: string
+  /** "MM/YY" */
+  expiry: string
+  is_default: boolean
+  /** Provider confirmed the card with an SMS code. */
+  verified: boolean
+}
+
+export type NotificationKind = 'order_status' | 'payment_failed'
+
+/** Rendered on the client from kind + params, in the interface language. */
+export type AppNotification = {
+  id: number
+  kind: NotificationKind
+  order_id: number
+  order_number: string
+  status: OrderStatus | null
+  is_read: boolean
+  created_at: string
+}
+
+export type PublicWarehouse = WarehouseSummary & {
+  country: LocalizedText
+  address: string
+  latitude: number | null
+  longitude: number | null
+}
+
+/** Everything needed to price an order on the client side. */
+export type WarehousePricing = {
+  settings: WarehouseSettings | null
+  tariffs: Tariff[]
+  courier_tariffs: CourierTariff[]
+}
+
+export type TrackingPoint = {
+  name: LocalizedText
+  latitude: number
+  longitude: number
+  at: string | null
+}
+
+/** Map data for a client's order: warehouses and shipment checkpoints. */
+export type OrderTracking = {
+  origin: TrackingPoint
+  destination: TrackingPoint
+  checkpoints: TrackingPoint[]
+  shipment_status: ShipmentStatus | null
 }

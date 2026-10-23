@@ -1,7 +1,7 @@
 import { createFileRoute, redirect } from '@tanstack/react-router'
 import { canAccess } from '@/lib/permissions'
 import { firstAllowedUrl } from '@/lib/route-guards'
-import { SectionPlaceholder } from '@/features/section-placeholder'
+import { Dashboard } from '@/features/dashboard'
 
 export const Route = createFileRoute('/admin/_staff/')({
   beforeLoad: ({ context }) => {
@@ -10,5 +10,5 @@ export const Route = createFileRoute('/admin/_staff/')({
       throw redirect({ to: firstAllowedUrl(context.user) ?? '/403' })
     }
   },
-  component: () => <SectionPlaceholder section='dashboard' />,
+  component: Dashboard,
 })

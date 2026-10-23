@@ -55,6 +55,7 @@ export function AddOrdersDialog({
       formId='add-orders-form'
       submitText={t('shipments.addOrders')}
       isPending={add.isPending}
+      submitDisabled={!picked.length}
     >
       <form
         id='add-orders-form'

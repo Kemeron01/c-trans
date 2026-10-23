@@ -10,6 +10,7 @@ import {
 } from '../../types'
 import { settings, toCurrentUser, type MockUser } from '../db'
 import { orders, recalculate } from '../db-orders'
+import { cancelStock, charge, pushStatus } from '../lifecycle'
 import { badRequest, forbidden, guard, notFound, STAFF } from '../utils'
 
 /** Origin or destination is the user's warehouse; super-admin sees all. */
@@ -17,21 +18,6 @@ export const visibleTo = (user: MockUser, order: Order) =>
   user.role === 'super_admin' ||
   order.origin_warehouse.id === user.warehouse_id ||
   order.destination_warehouse.id === user.warehouse_id
-
-export function pushStatus(
-  order: Order,
-  status: OrderStatus,
-  user: MockUser | null,
-  comment = ''
-) {
-  order.status = status
-  order.history.push({
-    status,
-    changed_by: user && { id: user.id, full_name: user.full_name },
-    at: new Date().toISOString(),
-    comment,
-  })
-}
 
 function findOrder(user: MockUser, id: unknown) {
   const order = orders.find((o) => o.id === Number(id))
@@ -109,9 +95,8 @@ export const orderHandlers = [
       return badRequest(`Расчётный вес ниже минимального (${min} кг).`)
     }
     pushStatus(order, 'received', user)
-    // Automatic charge from the client's card (sandbox: always succeeds)
-    pushStatus(order, 'paid', null, 'Автосписание с карты')
-    recalculate(order) // fixes the UZS amount at the charge rate
+    // Exact price known: automatic charge from the client's card
+    charge(order)
     return HttpResponse.json(order)
   }),
 
@@ -142,6 +127,7 @@ export const orderHandlers = [
     if (!canCancel(current, order)) return forbidden()
     const { reason } = (await request.json()) as { reason: string }
     const refund = needsRefund(order)
+    cancelStock(order)
     pushStatus(
       order,
       'cancelled',

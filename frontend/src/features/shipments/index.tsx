@@ -12,7 +12,7 @@ import { warehousesQuery } from '@/api/reference'
 import { shipmentsApi, shipmentsQuery } from '@/api/shipments'
 import { type Shipment } from '@/api/types'
 import { applyServerErrors } from '@/lib/form-errors'
-import { formatDate } from '@/lib/format'
+import { formatDate, todayLocal } from '@/lib/format'
 import { requiredString } from '@/lib/validation'
 import { useCurrentUser } from '@/hooks/use-current-user'
 import { Button } from '@/components/ui/button'
@@ -175,7 +175,7 @@ function CreateShipmentDialog({ onClose }: { onClose: () => void }) {
     defaultValues: {
       method: 'auto',
       destination_warehouse_id: '',
-      planned_departure: new Date().toISOString().slice(0, 10),
+      planned_departure: todayLocal(),
       planned_arrival: '',
     },
   })

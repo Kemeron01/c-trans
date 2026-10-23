@@ -19,6 +19,8 @@ type FormDialogProps = {
   formId: string
   submitText?: string
   isPending?: boolean
+  /** Extra condition to disable submit (e.g. nothing selected). */
+  submitDisabled?: boolean
   children: React.ReactNode
 }
 
@@ -31,6 +33,7 @@ export function FormDialog({
   formId,
   submitText,
   isPending,
+  submitDisabled,
   children,
 }: FormDialogProps) {
   const { t } = useTranslation()
@@ -50,7 +53,11 @@ export function FormDialog({
           >
             {t('common.cancel')}
           </Button>
-          <Button type='submit' form={formId} disabled={isPending}>
+          <Button
+            type='submit'
+            form={formId}
+            disabled={isPending || submitDisabled}
+          >
             {isPending && <Loader2 className='animate-spin' />}
             {submitText ?? t('common.save')}
           </Button>

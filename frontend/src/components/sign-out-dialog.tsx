@@ -5,11 +5,16 @@ import { ConfirmDialog } from '@/components/confirm-dialog'
 interface SignOutDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
+  redirectTo?: '/admin/sign-in' | '/'
 }
 
-export function SignOutDialog({ open, onOpenChange }: SignOutDialogProps) {
+export function SignOutDialog({
+  open,
+  onOpenChange,
+  redirectTo,
+}: SignOutDialogProps) {
   const { t } = useTranslation()
-  const signOut = useSignOut()
+  const signOut = useSignOut(redirectTo)
 
   return (
     <ConfirmDialog

@@ -1,6 +1,13 @@
 import { describe, expect, it } from 'vitest'
 import { type Tariff, type WarehouseSettings } from '@/api/types'
-import { findRange, quoteDelivery, rangesOverlap, toUzs } from './pricing'
+import {
+  findRange,
+  itemsDimensions,
+  quoteDelivery,
+  quoteOrder,
+  rangesOverlap,
+  toUzs,
+} from './pricing'
 
 const settings: WarehouseSettings = {
   warehouse_id: 1,
@@ -109,5 +116,47 @@ describe('quoteDelivery', () => {
 describe('toUzs', () => {
   it('rounds to whole sums', () => {
     expect(toUzs(12.5, 12650.55)).toBe(158132)
+  })
+})
+
+describe('quoteOrder', () => {
+  it('adds goods and the courier price for the chargeable weight', () => {
+    const quote = quoteOrder({
+      dimensions: itemsDimensions([
+        {
+          product: {
+            weight_kg: 10,
+            length_cm: 50,
+            width_cm: 40,
+            height_cm: 30,
+          },
+          quantity: 3,
+        },
+      ]),
+      method: 'auto',
+      settings,
+      tariffs,
+      goodsUsd: 90,
+      courierTariffs: [
+        { id: 1, warehouse_id: 4, weight_from: 0, weight_to: 50, price: 6 },
+        { id: 2, warehouse_id: 4, weight_from: 50, weight_to: null, price: 12 },
+      ],
+    })
+    // 3 × 10 kg = 30 kg; volume 3 × 60000 / 5000 = 36 kg → 36 × 4 = 144
+    expect(quote.chargeable_weight).toBe(36)
+    expect(quote.delivery_usd).toBe(144)
+    expect(quote.courier_usd).toBe(6)
+    expect(quote.total_usd).toBe(240)
+  })
+
+  it('has no total when delivery cannot be priced', () => {
+    const quote = quoteOrder({
+      dimensions: { weight_kg: 1, length_cm: 1, width_cm: 1, height_cm: 1 },
+      method: 'auto',
+      settings,
+      tariffs,
+      goodsUsd: 10,
+    })
+    expect(quote.total_usd).toBeNull()
   })
 })

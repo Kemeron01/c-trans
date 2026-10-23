@@ -29,6 +29,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { ConfirmDialog } from '@/components/confirm-dialog'
+import { EmptyState } from '@/components/empty-state'
 import { AppHeader } from '@/components/layout/app-header'
 import { Main } from '@/components/layout/main'
 import { OrderStatusBadge } from '../orders/order-status-badge'
@@ -40,8 +41,12 @@ const route = getRouteApi('/admin/_staff/shipments/$shipmentId')
 
 export function ShipmentDetail() {
   const { t } = useTranslation()
-  const { shipmentId } = route.useParams()
-  const { data, isLoading } = useQuery(shipmentQuery(Number(shipmentId)))
+  const id = Number(route.useParams().shipmentId)
+  const valid = Number.isInteger(id) && id > 0
+  const { data, isLoading, isError } = useQuery({
+    ...shipmentQuery(id),
+    enabled: valid,
+  })
   return (
     <>
       <AppHeader />
@@ -51,7 +56,12 @@ export function ShipmentDetail() {
             <ArrowLeft /> {t('nav.sections.shipments')}
           </Link>
         </Button>
-        {isLoading || !data ? (
+        {!valid || isError ? (
+          <EmptyState
+            title={t('shipments.notFound')}
+            description={t('common.notFoundHint')}
+          />
+        ) : isLoading || !data ? (
           <Skeleton className='h-64 w-full' />
         ) : (
           <ShipmentView shipment={data} />

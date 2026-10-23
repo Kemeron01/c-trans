@@ -43,6 +43,24 @@ export function formatNumber(value: number, maxDigits = 2) {
 export function formatDate(value: string | null | undefined) {
   if (!value) return '—'
   return new Intl.DateTimeFormat(locale(), { dateStyle: 'short' }).format(
-    new Date(value)
+    parseDate(value)
   )
+}
+
+/**
+ * "YYYY-MM-DD" is a calendar date, not an instant: `new Date('2026-10-22')`
+ * is UTC midnight and shows the previous day west of UTC. Parse it as local.
+ */
+export function parseDate(value: string) {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value)
+  return m
+    ? new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]))
+    : new Date(value)
+}
+
+/** Today as "YYYY-MM-DD" in the user's time zone (for <input type="date">). */
+export function todayLocal() {
+  const d = new Date()
+  const pad = (n: number) => String(n).padStart(2, '0')
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
 }

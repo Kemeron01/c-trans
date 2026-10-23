@@ -9,15 +9,22 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as IndexRouteImport } from './routes/index'
+import { Route as SignInRouteImport } from './routes/sign-in'
+import { Route as SiteRouteRouteImport } from './routes/_site/route'
+import { Route as SiteIndexRouteImport } from './routes/_site/index'
 import { Route as AdminSignInRouteImport } from './routes/admin/sign-in'
+import { Route as SiteCatalogRouteImport } from './routes/_site/catalog'
+import { Route as SiteCartRouteImport } from './routes/_site/cart'
 import { Route as errors503RouteImport } from './routes/(errors)/503'
 import { Route as errors500RouteImport } from './routes/(errors)/500'
 import { Route as errors404RouteImport } from './routes/(errors)/404'
 import { Route as errors403RouteImport } from './routes/(errors)/403'
 import { Route as errors401RouteImport } from './routes/(errors)/401'
 import { Route as AdminStaffRouteRouteImport } from './routes/admin/_staff/route'
+import { Route as SiteClientRouteRouteImport } from './routes/_site/_client/route'
 import { Route as AdminStaffIndexRouteImport } from './routes/admin/_staff/index'
+import { Route as SiteClientSendRouteImport } from './routes/_site/_client/send'
+import { Route as SiteClientAccountRouteImport } from './routes/_site/_client/account'
 import { Route as AdminStaffWorkersIndexRouteImport } from './routes/admin/_staff/workers/index'
 import { Route as AdminStaffWarehousesIndexRouteImport } from './routes/admin/_staff/warehouses/index'
 import { Route as AdminStaffUserRequestsIndexRouteImport } from './routes/admin/_staff/user-requests/index'
@@ -32,18 +39,39 @@ import { Route as AdminStaffClientsIndexRouteImport } from './routes/admin/_staf
 import { Route as AdminStaffCatalogIndexRouteImport } from './routes/admin/_staff/catalog/index'
 import { Route as AdminStaffCalculatorIndexRouteImport } from './routes/admin/_staff/calculator/index'
 import { Route as AdminStaffAdminsIndexRouteImport } from './routes/admin/_staff/admins/index'
+import { Route as SiteClientOrdersIndexRouteImport } from './routes/_site/_client/orders/index'
 import { Route as AdminStaffShipmentsShipmentIdRouteImport } from './routes/admin/_staff/shipments/$shipmentId'
 import { Route as AdminStaffOrdersOrderIdRouteImport } from './routes/admin/_staff/orders/$orderId'
+import { Route as SiteClientOrdersOrderIdRouteImport } from './routes/_site/_client/orders/$orderId'
 
-const IndexRoute = IndexRouteImport.update({
+const SignInRoute = SignInRouteImport.update({
+  id: '/sign-in',
+  path: '/sign-in',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SiteRouteRoute = SiteRouteRouteImport.update({
+  id: '/_site',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SiteIndexRoute = SiteIndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => SiteRouteRoute,
 } as any)
 const AdminSignInRoute = AdminSignInRouteImport.update({
   id: '/admin/sign-in',
   path: '/admin/sign-in',
   getParentRoute: () => rootRouteImport,
+} as any)
+const SiteCatalogRoute = SiteCatalogRouteImport.update({
+  id: '/catalog',
+  path: '/catalog',
+  getParentRoute: () => SiteRouteRoute,
+} as any)
+const SiteCartRoute = SiteCartRouteImport.update({
+  id: '/cart',
+  path: '/cart',
+  getParentRoute: () => SiteRouteRoute,
 } as any)
 const errors503Route = errors503RouteImport.update({
   id: '/(errors)/503',
@@ -75,10 +103,24 @@ const AdminStaffRouteRoute = AdminStaffRouteRouteImport.update({
   path: '/admin',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SiteClientRouteRoute = SiteClientRouteRouteImport.update({
+  id: '/_client',
+  getParentRoute: () => SiteRouteRoute,
+} as any)
 const AdminStaffIndexRoute = AdminStaffIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => AdminStaffRouteRoute,
+} as any)
+const SiteClientSendRoute = SiteClientSendRouteImport.update({
+  id: '/send',
+  path: '/send',
+  getParentRoute: () => SiteClientRouteRoute,
+} as any)
+const SiteClientAccountRoute = SiteClientAccountRouteImport.update({
+  id: '/account',
+  path: '/account',
+  getParentRoute: () => SiteClientRouteRoute,
 } as any)
 const AdminStaffWorkersIndexRoute = AdminStaffWorkersIndexRouteImport.update({
   id: '/workers/',
@@ -156,6 +198,11 @@ const AdminStaffAdminsIndexRoute = AdminStaffAdminsIndexRouteImport.update({
   path: '/admins/',
   getParentRoute: () => AdminStaffRouteRoute,
 } as any)
+const SiteClientOrdersIndexRoute = SiteClientOrdersIndexRouteImport.update({
+  id: '/orders/',
+  path: '/orders/',
+  getParentRoute: () => SiteClientRouteRoute,
+} as any)
 const AdminStaffShipmentsShipmentIdRoute =
   AdminStaffShipmentsShipmentIdRouteImport.update({
     id: '/shipments/$shipmentId',
@@ -167,19 +214,31 @@ const AdminStaffOrdersOrderIdRoute = AdminStaffOrdersOrderIdRouteImport.update({
   path: '/orders/$orderId',
   getParentRoute: () => AdminStaffRouteRoute,
 } as any)
+const SiteClientOrdersOrderIdRoute = SiteClientOrdersOrderIdRouteImport.update({
+  id: '/orders/$orderId',
+  path: '/orders/$orderId',
+  getParentRoute: () => SiteClientRouteRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
+  '/': typeof SiteIndexRoute
+  '/sign-in': typeof SignInRoute
   '/admin': typeof AdminStaffRouteRouteWithChildren
   '/401': typeof errors401Route
   '/403': typeof errors403Route
   '/404': typeof errors404Route
   '/500': typeof errors500Route
   '/503': typeof errors503Route
+  '/cart': typeof SiteCartRoute
+  '/catalog': typeof SiteCatalogRoute
   '/admin/sign-in': typeof AdminSignInRoute
+  '/account': typeof SiteClientAccountRoute
+  '/send': typeof SiteClientSendRoute
   '/admin/': typeof AdminStaffIndexRoute
+  '/orders/$orderId': typeof SiteClientOrdersOrderIdRoute
   '/admin/orders/$orderId': typeof AdminStaffOrdersOrderIdRoute
   '/admin/shipments/$shipmentId': typeof AdminStaffShipmentsShipmentIdRoute
+  '/orders/': typeof SiteClientOrdersIndexRoute
   '/admin/admins/': typeof AdminStaffAdminsIndexRoute
   '/admin/calculator/': typeof AdminStaffCalculatorIndexRoute
   '/admin/catalog/': typeof AdminStaffCatalogIndexRoute
@@ -196,16 +255,23 @@ export interface FileRoutesByFullPath {
   '/admin/workers/': typeof AdminStaffWorkersIndexRoute
 }
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute
+  '/sign-in': typeof SignInRoute
+  '/': typeof SiteIndexRoute
   '/401': typeof errors401Route
   '/403': typeof errors403Route
   '/404': typeof errors404Route
   '/500': typeof errors500Route
   '/503': typeof errors503Route
+  '/cart': typeof SiteCartRoute
+  '/catalog': typeof SiteCatalogRoute
   '/admin/sign-in': typeof AdminSignInRoute
+  '/account': typeof SiteClientAccountRoute
+  '/send': typeof SiteClientSendRoute
   '/admin': typeof AdminStaffIndexRoute
+  '/orders/$orderId': typeof SiteClientOrdersOrderIdRoute
   '/admin/orders/$orderId': typeof AdminStaffOrdersOrderIdRoute
   '/admin/shipments/$shipmentId': typeof AdminStaffShipmentsShipmentIdRoute
+  '/orders': typeof SiteClientOrdersIndexRoute
   '/admin/admins': typeof AdminStaffAdminsIndexRoute
   '/admin/calculator': typeof AdminStaffCalculatorIndexRoute
   '/admin/catalog': typeof AdminStaffCatalogIndexRoute
@@ -223,17 +289,26 @@ export interface FileRoutesByTo {
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/': typeof IndexRoute
+  '/_site': typeof SiteRouteRouteWithChildren
+  '/sign-in': typeof SignInRoute
+  '/_site/_client': typeof SiteClientRouteRouteWithChildren
   '/admin/_staff': typeof AdminStaffRouteRouteWithChildren
   '/(errors)/401': typeof errors401Route
   '/(errors)/403': typeof errors403Route
   '/(errors)/404': typeof errors404Route
   '/(errors)/500': typeof errors500Route
   '/(errors)/503': typeof errors503Route
+  '/_site/cart': typeof SiteCartRoute
+  '/_site/catalog': typeof SiteCatalogRoute
   '/admin/sign-in': typeof AdminSignInRoute
+  '/_site/': typeof SiteIndexRoute
+  '/_site/_client/account': typeof SiteClientAccountRoute
+  '/_site/_client/send': typeof SiteClientSendRoute
   '/admin/_staff/': typeof AdminStaffIndexRoute
+  '/_site/_client/orders/$orderId': typeof SiteClientOrdersOrderIdRoute
   '/admin/_staff/orders/$orderId': typeof AdminStaffOrdersOrderIdRoute
   '/admin/_staff/shipments/$shipmentId': typeof AdminStaffShipmentsShipmentIdRoute
+  '/_site/_client/orders/': typeof SiteClientOrdersIndexRoute
   '/admin/_staff/admins/': typeof AdminStaffAdminsIndexRoute
   '/admin/_staff/calculator/': typeof AdminStaffCalculatorIndexRoute
   '/admin/_staff/catalog/': typeof AdminStaffCatalogIndexRoute
@@ -253,16 +328,23 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/sign-in'
     | '/admin'
     | '/401'
     | '/403'
     | '/404'
     | '/500'
     | '/503'
+    | '/cart'
+    | '/catalog'
     | '/admin/sign-in'
+    | '/account'
+    | '/send'
     | '/admin/'
+    | '/orders/$orderId'
     | '/admin/orders/$orderId'
     | '/admin/shipments/$shipmentId'
+    | '/orders/'
     | '/admin/admins/'
     | '/admin/calculator/'
     | '/admin/catalog/'
@@ -279,16 +361,23 @@ export interface FileRouteTypes {
     | '/admin/workers/'
   fileRoutesByTo: FileRoutesByTo
   to:
+    | '/sign-in'
     | '/'
     | '/401'
     | '/403'
     | '/404'
     | '/500'
     | '/503'
+    | '/cart'
+    | '/catalog'
     | '/admin/sign-in'
+    | '/account'
+    | '/send'
     | '/admin'
+    | '/orders/$orderId'
     | '/admin/orders/$orderId'
     | '/admin/shipments/$shipmentId'
+    | '/orders'
     | '/admin/admins'
     | '/admin/calculator'
     | '/admin/catalog'
@@ -305,17 +394,26 @@ export interface FileRouteTypes {
     | '/admin/workers'
   id:
     | '__root__'
-    | '/'
+    | '/_site'
+    | '/sign-in'
+    | '/_site/_client'
     | '/admin/_staff'
     | '/(errors)/401'
     | '/(errors)/403'
     | '/(errors)/404'
     | '/(errors)/500'
     | '/(errors)/503'
+    | '/_site/cart'
+    | '/_site/catalog'
     | '/admin/sign-in'
+    | '/_site/'
+    | '/_site/_client/account'
+    | '/_site/_client/send'
     | '/admin/_staff/'
+    | '/_site/_client/orders/$orderId'
     | '/admin/_staff/orders/$orderId'
     | '/admin/_staff/shipments/$shipmentId'
+    | '/_site/_client/orders/'
     | '/admin/_staff/admins/'
     | '/admin/_staff/calculator/'
     | '/admin/_staff/catalog/'
@@ -333,7 +431,8 @@ export interface FileRouteTypes {
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
+  SiteRouteRoute: typeof SiteRouteRouteWithChildren
+  SignInRoute: typeof SignInRoute
   AdminStaffRouteRoute: typeof AdminStaffRouteRouteWithChildren
   errors401Route: typeof errors401Route
   errors403Route: typeof errors403Route
@@ -345,12 +444,26 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/': {
-      id: '/'
+    '/sign-in': {
+      id: '/sign-in'
+      path: '/sign-in'
+      fullPath: '/sign-in'
+      preLoaderRoute: typeof SignInRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_site': {
+      id: '/_site'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof SiteRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_site/': {
+      id: '/_site/'
       path: '/'
       fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof SiteIndexRouteImport
+      parentRoute: typeof SiteRouteRoute
     }
     '/admin/sign-in': {
       id: '/admin/sign-in'
@@ -358,6 +471,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/admin/sign-in'
       preLoaderRoute: typeof AdminSignInRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_site/catalog': {
+      id: '/_site/catalog'
+      path: '/catalog'
+      fullPath: '/catalog'
+      preLoaderRoute: typeof SiteCatalogRouteImport
+      parentRoute: typeof SiteRouteRoute
+    }
+    '/_site/cart': {
+      id: '/_site/cart'
+      path: '/cart'
+      fullPath: '/cart'
+      preLoaderRoute: typeof SiteCartRouteImport
+      parentRoute: typeof SiteRouteRoute
     }
     '/(errors)/503': {
       id: '/(errors)/503'
@@ -401,12 +528,33 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminStaffRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_site/_client': {
+      id: '/_site/_client'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof SiteClientRouteRouteImport
+      parentRoute: typeof SiteRouteRoute
+    }
     '/admin/_staff/': {
       id: '/admin/_staff/'
       path: '/'
       fullPath: '/admin/'
       preLoaderRoute: typeof AdminStaffIndexRouteImport
       parentRoute: typeof AdminStaffRouteRoute
+    }
+    '/_site/_client/send': {
+      id: '/_site/_client/send'
+      path: '/send'
+      fullPath: '/send'
+      preLoaderRoute: typeof SiteClientSendRouteImport
+      parentRoute: typeof SiteClientRouteRoute
+    }
+    '/_site/_client/account': {
+      id: '/_site/_client/account'
+      path: '/account'
+      fullPath: '/account'
+      preLoaderRoute: typeof SiteClientAccountRouteImport
+      parentRoute: typeof SiteClientRouteRoute
     }
     '/admin/_staff/workers/': {
       id: '/admin/_staff/workers/'
@@ -506,6 +654,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminStaffAdminsIndexRouteImport
       parentRoute: typeof AdminStaffRouteRoute
     }
+    '/_site/_client/orders/': {
+      id: '/_site/_client/orders/'
+      path: '/orders'
+      fullPath: '/orders/'
+      preLoaderRoute: typeof SiteClientOrdersIndexRouteImport
+      parentRoute: typeof SiteClientRouteRoute
+    }
     '/admin/_staff/shipments/$shipmentId': {
       id: '/admin/_staff/shipments/$shipmentId'
       path: '/shipments/$shipmentId'
@@ -520,8 +675,51 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminStaffOrdersOrderIdRouteImport
       parentRoute: typeof AdminStaffRouteRoute
     }
+    '/_site/_client/orders/$orderId': {
+      id: '/_site/_client/orders/$orderId'
+      path: '/orders/$orderId'
+      fullPath: '/orders/$orderId'
+      preLoaderRoute: typeof SiteClientOrdersOrderIdRouteImport
+      parentRoute: typeof SiteClientRouteRoute
+    }
   }
 }
+
+interface SiteClientRouteRouteChildren {
+  SiteClientAccountRoute: typeof SiteClientAccountRoute
+  SiteClientSendRoute: typeof SiteClientSendRoute
+  SiteClientOrdersOrderIdRoute: typeof SiteClientOrdersOrderIdRoute
+  SiteClientOrdersIndexRoute: typeof SiteClientOrdersIndexRoute
+}
+
+const SiteClientRouteRouteChildren: SiteClientRouteRouteChildren = {
+  SiteClientAccountRoute: SiteClientAccountRoute,
+  SiteClientSendRoute: SiteClientSendRoute,
+  SiteClientOrdersOrderIdRoute: SiteClientOrdersOrderIdRoute,
+  SiteClientOrdersIndexRoute: SiteClientOrdersIndexRoute,
+}
+
+const SiteClientRouteRouteWithChildren = SiteClientRouteRoute._addFileChildren(
+  SiteClientRouteRouteChildren,
+)
+
+interface SiteRouteRouteChildren {
+  SiteClientRouteRoute: typeof SiteClientRouteRouteWithChildren
+  SiteCartRoute: typeof SiteCartRoute
+  SiteCatalogRoute: typeof SiteCatalogRoute
+  SiteIndexRoute: typeof SiteIndexRoute
+}
+
+const SiteRouteRouteChildren: SiteRouteRouteChildren = {
+  SiteClientRouteRoute: SiteClientRouteRouteWithChildren,
+  SiteCartRoute: SiteCartRoute,
+  SiteCatalogRoute: SiteCatalogRoute,
+  SiteIndexRoute: SiteIndexRoute,
+}
+
+const SiteRouteRouteWithChildren = SiteRouteRoute._addFileChildren(
+  SiteRouteRouteChildren,
+)
 
 interface AdminStaffRouteRouteChildren {
   AdminStaffIndexRoute: typeof AdminStaffIndexRoute
@@ -568,7 +766,8 @@ const AdminStaffRouteRouteWithChildren = AdminStaffRouteRoute._addFileChildren(
 )
 
 const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
+  SiteRouteRoute: SiteRouteRouteWithChildren,
+  SignInRoute: SignInRoute,
   AdminStaffRouteRoute: AdminStaffRouteRouteWithChildren,
   errors401Route: errors401Route,
   errors403Route: errors403Route,

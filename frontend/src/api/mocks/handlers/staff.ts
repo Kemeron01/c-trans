@@ -70,6 +70,7 @@ export const staffHandlers = [
       language: 'ru',
       warehouse_id,
       client_code: null,
+      address: '',
       is_active: true,
       created_at: new Date().toISOString(),
     }
@@ -217,6 +218,7 @@ export const staffHandlers = [
           language: 'ru',
           warehouse_id: item.warehouse.id,
           client_code: null,
+          address: '',
           password: item.password,
           is_active: true,
           created_at: new Date().toISOString(),

@@ -10,6 +10,7 @@ import { RouterProvider, createRouter } from '@tanstack/react-router'
 import { toast } from 'sonner'
 import { API_MOCKS_ENABLED } from '@/api/config'
 import { useAuthStore } from '@/stores/auth-store'
+import { reloadOnce } from '@/lib/chunk-reload'
 import { handleServerError } from '@/lib/handle-server-error'
 import i18n from '@/lib/i18n'
 import { FontProvider } from './context/font-provider'
@@ -18,6 +19,11 @@ import { ThemeProvider } from './context/theme-provider'
 import { routeTree } from './routeTree.gen'
 // Styles
 import './styles/index.css'
+
+// Lazy chunk of an older build is gone (new deploy): load the new version
+window.addEventListener('vite:preloadError', (event) => {
+  if (reloadOnce()) event.preventDefault()
+})
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -50,16 +56,23 @@ const queryClient = new QueryClient({
     },
   },
   queryCache: new QueryCache({
-    onError: (error) => {
+    onError: (error, query) => {
       if (error instanceof AxiosError) {
         if (error.response?.status === 401) {
-          // Only the admin panel has signed-in pages for now; the client
-          // area (stage 5) will get its own sign-in page.
           if (!useAuthStore.getState().accessToken) return
+          // Public pages (site header): just forget the stale session
+          if (query.meta?.publicPage) {
+            useAuthStore.getState().reset()
+            return
+          }
           toast.error(i18n.t('auth.sessionExpired'))
           useAuthStore.getState().reset()
           const redirect = router.history.location.href
-          router.navigate({ to: '/admin/sign-in', search: { redirect } })
+          // Staff and clients have separate sign-in pages
+          router.navigate({
+            to: redirect.startsWith('/admin') ? '/admin/sign-in' : '/sign-in',
+            search: { redirect },
+          })
         }
         if (error.response?.status === 500) {
           toast.error(i18n.t('errors.serverError'))

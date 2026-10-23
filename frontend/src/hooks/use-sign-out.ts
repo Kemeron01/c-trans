@@ -3,7 +3,10 @@ import { useNavigate } from '@tanstack/react-router'
 import { authApi } from '@/api/auth'
 import { useAuthStore } from '@/stores/auth-store'
 
-export function useSignOut() {
+/** Ends the session; staff go to the admin sign-in, clients to the site. */
+export function useSignOut(
+  redirectTo: '/admin/sign-in' | '/' = '/admin/sign-in'
+) {
   const queryClient = useQueryClient()
   const navigate = useNavigate()
 
@@ -11,7 +14,7 @@ export function useSignOut() {
     // Best effort: the session ends locally even if the request fails
     authApi.logout().catch(() => undefined)
     useAuthStore.getState().reset()
-    await navigate({ to: '/admin/sign-in', replace: true })
+    await navigate({ to: redirectTo, replace: true })
     queryClient.clear()
   }
 }

@@ -106,6 +106,8 @@ export function warehouseSummary(id: number | null): WarehouseSummary | null {
 
 export type MockUser = Omit<CurrentUser, 'warehouse'> & {
   warehouse_id: number | null
+  /** Clients: delivery address from the profile. */
+  address: string
   password: string
   is_active: boolean
   created_at: string
@@ -128,9 +130,27 @@ function staff(
     language: 'ru',
     warehouse_id,
     client_code: null,
+    address: '',
     password: MOCK_PASSWORD,
     is_active: true,
     created_at: '2026-10-01T09:00:00Z',
+  }
+}
+
+function client(
+  id: number,
+  full_name: string,
+  phone: string,
+  client_code: string,
+  address: string
+): MockUser {
+  return {
+    ...staff(id, '', full_name, 'client', null),
+    username: null,
+    phone,
+    client_code,
+    address,
+    password: '',
   }
 }
 
@@ -140,6 +160,28 @@ export const users: MockUser[] = [
   staff(3, 'worker.china', 'Чжан Мин', 'worker', 1),
   staff(4, 'admin.tashkent', 'Азиз Каримов', 'admin', 4),
   staff(5, 'worker.tashkent', 'Бобур Алиев', 'worker', 4),
+  // Clients sign in with phone + SMS code (mock code 123456)
+  client(
+    101,
+    'Алишер Усманов',
+    '+998901234567',
+    'CT-10234',
+    'Ташкент, Юнусабад 4-12'
+  ),
+  client(
+    102,
+    'Дилноза Рахимова',
+    '+998937654321',
+    'CT-10567',
+    'Ташкент, Чиланзар 9-33'
+  ),
+  client(
+    103,
+    'Тимур Ахмедов',
+    '+998971112233',
+    'CT-10891',
+    'Ташкент, Мирабад 2-7'
+  ),
 ]
 
 /** Pending requests keep the password until approval creates the account. */
@@ -170,6 +212,7 @@ export function toCurrentUser({
   is_active: _isActive,
   created_at: _createdAt,
   warehouse_id,
+  address: _address,
   ...user
 }: MockUser): CurrentUser {
   return { ...user, warehouse: warehouseSummary(warehouse_id) }
@@ -271,8 +314,7 @@ const product = (
   name: LocalizedText,
   price: number,
   dims: [number, number, number, number],
-  quantity: number,
-  reserved = 0
+  quantity: number
 ): Product => ({
   id,
   warehouse_id: 1,
@@ -285,7 +327,7 @@ const product = (
   width_cm: dims[2],
   height_cm: dims[3],
   is_active: true,
-  stock: { quantity, reserved },
+  stock: { quantity, reserved: 0 },
 })
 
 export const products: Product[] = [
@@ -298,16 +340,14 @@ export const products: Product[] = [
     },
     35,
     [1.2, 35, 22, 13],
-    40,
-    2
+    38 // 42 received − 2 sold (ORD-1004)
   ),
   product(
     2,
     { ru: 'Чехол для телефона', uz: 'Telefon g‘ilofi', en: 'Phone case' },
     2.5,
     [0.1, 18, 10, 2],
-    500,
-    5
+    500
   ),
   product(
     3,
@@ -318,8 +358,7 @@ export const products: Product[] = [
     },
     14,
     [0.9, 40, 20, 15],
-    60,
-    3
+    60
   ),
 ]
 
@@ -336,7 +375,7 @@ export const stockMovements: StockMovement[] = [
   {
     id: 2,
     product_id: 1,
-    kind: 'reserve',
+    kind: 'write_off', // reserve becomes a write-off once paid (5.1)
     quantity: -2,
     reason: 'ORD-1004',
     created_by: { id: 3, full_name: 'Чжан Мин' },

@@ -20,6 +20,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { ConfirmDialog } from '@/components/confirm-dialog'
+import { EmptyState } from '@/components/empty-state'
 import { AppHeader } from '@/components/layout/app-header'
 import { Main } from '@/components/layout/main'
 import { CancelDialog, WeighDialog } from './order-dialogs'
@@ -35,8 +36,13 @@ type DialogState =
 
 export function OrderDetail() {
   const { t } = useTranslation()
-  const { orderId } = route.useParams()
-  const { data: order, isLoading } = useQuery(orderQuery(Number(orderId)))
+  const id = Number(route.useParams().orderId)
+  const valid = Number.isInteger(id) && id > 0
+  const {
+    data: order,
+    isLoading,
+    isError,
+  } = useQuery({ ...orderQuery(id), enabled: valid })
 
   return (
     <>
@@ -47,7 +53,12 @@ export function OrderDetail() {
             <ArrowLeft /> {t('nav.sections.orders')}
           </Link>
         </Button>
-        {isLoading || !order ? (
+        {!valid || isError ? (
+          <EmptyState
+            title={t('orders.notFound')}
+            description={t('common.notFoundHint')}
+          />
+        ) : isLoading || !order ? (
           <Skeleton className='h-64 w-full' />
         ) : (
           <OrderView order={order} />

@@ -55,7 +55,7 @@ export const courierTariffsApi = {
 }
 
 export const ratesApi = {
-  /** Latest USD → UZS rate (backend caches cbu.uz daily). */
+  /** Latest USD → UZS rate (backend caches cbu.uz daily). Public. */
   usd: () => api.get<ExchangeRate>('/rates/usd/').then((r) => r.data),
 }
 

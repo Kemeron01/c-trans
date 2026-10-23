@@ -30,17 +30,14 @@ function checkRange<T extends WeightRange & { id?: number }>(
 }
 
 export const setupHandlers = [
-  http.get(`${API_URL}/rates/usd/`, async ({ request }) => {
-    const { error } = guard(request, [...STAFF, 'client'])
-    return (
-      error ??
-      HttpResponse.json({
-        currency: 'UZS',
-        rate: RATE_UZS,
-        date: new Date().toISOString().slice(0, 10),
-      })
-    )
-  }),
+  // Public: the site shows prices in USD and UZS to everyone (4.3)
+  http.get(`${API_URL}/rates/usd/`, () =>
+    HttpResponse.json({
+      currency: 'UZS',
+      rate: RATE_UZS,
+      date: new Date().toISOString().slice(0, 10),
+    })
+  ),
 
   http.get(
     `${API_URL}/warehouses/:id/settings/`,

@@ -32,7 +32,7 @@ export function useWarehouseScope(kind: WarehouseKind) {
 
   const picker = isSuper ? (
     <Select
-      value={warehouseId ? String(warehouseId) : undefined}
+      value={warehouseId ? String(warehouseId) : ''}
       onValueChange={(v) => setPicked(Number(v))}
     >
       <SelectTrigger className='w-56' aria-label={t('staff.warehouse')}>

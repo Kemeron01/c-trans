@@ -4,6 +4,7 @@ import { type CheckpointPayload, type ShipmentPayload } from '../../shipments'
 import { type Shipment } from '../../types'
 import { nextId, type MockUser, warehouseSummary } from '../db'
 import { orders, shipments } from '../db-orders'
+import { pushStatus } from '../lifecycle'
 import {
   badRequest,
   belongsTo,
@@ -12,7 +13,6 @@ import {
   notFound,
   STAFF,
 } from '../utils'
-import { pushStatus } from './orders'
 
 const visible = (user: MockUser, s: Shipment) =>
   user.role === 'super_admin' ||

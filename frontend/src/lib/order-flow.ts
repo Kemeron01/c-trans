@@ -126,3 +126,39 @@ export const LEAD_STATUSES: OrderStatus[] = [
 /** Not delivered and not cancelled (dashboard "active orders", section 12). */
 export const isActive = (status: OrderStatus) =>
   !['delivered', 'cancelled', 'lead_rejected'].includes(status)
+
+/**
+ * Client progress bar: the steps of the order type and how far the order
+ * got. Intermediate statuses map to the nearest visible step; `stopped` —
+ * cancelled or rejected.
+ */
+export function progressOf(order: Order) {
+  const steps = PROGRESS[order.type]
+  const alias: Partial<Record<OrderStatus, OrderStatus>> = {
+    lead_negotiation: 'lead_new',
+    awaiting_payment: order.type === 'catalog' ? 'created' : 'received',
+    ready_for_pickup: 'arrived_uz',
+    handed_to_courier: 'arrived_uz',
+  }
+  const stopped = ['cancelled', 'lead_rejected'].includes(order.status)
+  // Stopped orders: show where they stopped
+  const effective = stopped
+    ? ([...order.history].reverse().find((h) => steps.includes(h.status))
+        ?.status ?? steps[0])
+    : (alias[order.status] ?? order.status)
+  return { steps, current: Math.max(0, steps.indexOf(effective)), stopped }
+}
+
+/** Client can cancel before paying / before the cargo is received (5.3). */
+export const clientCanCancel = (order: Order) =>
+  [
+    'lead_new',
+    'lead_negotiation',
+    'awaiting_arrival',
+    'created',
+    'awaiting_payment',
+  ].includes(order.status)
+
+/** One review per order, after delivery (section 11). */
+export const canReview = (order: Order) =>
+  order.status === 'delivered' && order.review_id === null

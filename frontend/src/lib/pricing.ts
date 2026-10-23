@@ -1,4 +1,5 @@
 import {
+  type CourierTariff,
   type DeliveryMethod,
   type Dimensions,
   type Tariff,
@@ -74,3 +75,57 @@ export function quoteDelivery({
 }
 
 export const toUzs = (usd: number, rate: number) => Math.round(usd * rate)
+
+/**
+ * Weight and volume of several items packed together (catalog orders).
+ * Total volume goes into `length_cm` so the same formula applies.
+ */
+export function itemsDimensions(
+  items: { product: Dimensions; quantity: number }[]
+): Dimensions {
+  let weight = 0
+  let volume = 0
+  for (const { product, quantity } of items) {
+    weight += product.weight_kg * quantity
+    volume +=
+      product.length_cm * product.width_cm * product.height_cm * quantity
+  }
+  return {
+    weight_kg: round(weight, 3),
+    length_cm: volume,
+    width_cm: 1,
+    height_cm: 1,
+  }
+}
+
+export type OrderQuote = DeliveryQuote & {
+  goods_usd: number
+  courier_usd: number
+  /** null when delivery cannot be priced (no tariff). */
+  total_usd: number | null
+}
+
+/** Order total, requirements 4.2: goods + delivery + courier (if chosen). */
+export function quoteOrder({
+  goodsUsd = 0,
+  courierTariffs,
+  ...delivery
+}: Parameters<typeof quoteDelivery>[0] & {
+  goodsUsd?: number
+  /** Courier tariffs of the Uzbek warehouse; omit for pickup. */
+  courierTariffs?: CourierTariff[]
+}): OrderQuote {
+  const quote = quoteDelivery(delivery)
+  const courier = courierTariffs
+    ? (findRange(courierTariffs, quote.chargeable_weight)?.price ?? 0)
+    : 0
+  return {
+    ...quote,
+    goods_usd: round(goodsUsd),
+    courier_usd: courier,
+    total_usd:
+      quote.delivery_usd === null
+        ? null
+        : round(goodsUsd + quote.delivery_usd + courier),
+  }
+}

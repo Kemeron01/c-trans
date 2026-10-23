@@ -1,6 +1,13 @@
 import { describe, expect, it } from 'vitest'
 import { type CurrentUser, type Order } from '@/api/types'
-import { canCancel, isOnSide, manualSteps } from './order-flow'
+import {
+  canCancel,
+  canReview,
+  clientCanCancel,
+  isOnSide,
+  manualSteps,
+  progressOf,
+} from './order-flow'
 
 const wh = (id: number, kind: 'foreign' | 'local') => ({
   id,
@@ -34,6 +41,7 @@ const order = (patch: Partial<Order>): Order => ({
   cargo: null,
   lead: null,
   shipment: null,
+  review_id: null,
   history: [],
   created_at: '',
   ...patch,
@@ -94,5 +102,44 @@ describe('sides and cancelling', () => {
     expect(canCancel(user('admin', 1), order({ status: 'in_transit' }))).toBe(
       false
     )
+  })
+})
+
+describe('progressOf', () => {
+  it('maps intermediate statuses onto visible steps', () => {
+    const p = progressOf(order({ status: 'ready_for_pickup' }))
+    expect(p.steps[p.current]).toBe('arrived_uz')
+    expect(p.stopped).toBe(false)
+    expect(
+      progressOf(order({ type: 'catalog', status: 'awaiting_payment' })).current
+    ).toBe(0)
+  })
+
+  it('shows where a cancelled order stopped', () => {
+    const p = progressOf(
+      order({
+        status: 'cancelled',
+        history: [
+          { status: 'lead_new', changed_by: null, at: '', comment: '' },
+          { status: 'awaiting_arrival', changed_by: null, at: '', comment: '' },
+          { status: 'cancelled', changed_by: null, at: '', comment: '' },
+        ],
+      })
+    )
+    expect(p.steps[p.current]).toBe('awaiting_arrival')
+    expect(p.stopped).toBe(true)
+  })
+})
+
+describe('client rules', () => {
+  it('lets the client cancel only before payment / receiving', () => {
+    expect(clientCanCancel(order({ status: 'awaiting_arrival' }))).toBe(true)
+    expect(clientCanCancel(order({ status: 'paid' }))).toBe(false)
+  })
+
+  it('allows one review after delivery', () => {
+    expect(canReview(order({ status: 'delivered' }))).toBe(true)
+    expect(canReview(order({ status: 'delivered', review_id: 5 }))).toBe(false)
+    expect(canReview(order({ status: 'in_transit' }))).toBe(false)
   })
 })

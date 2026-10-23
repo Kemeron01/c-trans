@@ -10,6 +10,8 @@ type ErrorPageProps = {
   /** Show "Back" / "Home" buttons. */
   withActions?: boolean
   className?: string
+  /** Extra content under the buttons (e.g. a reload button). */
+  children?: React.ReactNode
 }
 
 export function ErrorPage({
@@ -18,6 +20,7 @@ export function ErrorPage({
   description,
   withActions = true,
   className,
+  children,
 }: ErrorPageProps) {
   const { t } = useTranslation()
   const navigate = useNavigate()
@@ -42,6 +45,7 @@ export function ErrorPage({
             </Button>
           </div>
         )}
+        {children}
       </div>
     </div>
   )
