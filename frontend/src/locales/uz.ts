@@ -121,7 +121,54 @@ export const uz: Translation = {
     demoAccounts: 'Demo hisoblar (moklar, parol {{password}})',
   },
   landing: {
-    lead: "Ombor katalogidan tovarlarni sotib olamiz va posilkalaringizni avia yoki fura orqali yetkazamiz. Narx — og'irlik bo'yicha, to'lov — bog'langan kartadan avtomatik, kuzatuv — xaritada.",
+    lead: "Xitoy, Rossiya va AQShdagi omborlarimiz katalogidagi tovarlarni va sizning yuklaringizni avia yoki fura orqali yetkazamiz. Narx — og'irlik bo'yicha, to'lov — bog'langan kartadan avtomatik, kuzatuv — xaritada.",
+    globeLabel:
+      'Xitoy, Rossiya va AQShdagi omborlardan Toshkentga yetkazish chiziqlari tushirilgan globus',
+    statsTitle: 'Raqamlarda C-Trans',
+    statsLead: 'Qanday ishlaymiz: muddatlar, saqlanish va hajmlar.',
+    gauges: {
+      onTime: "O'z vaqtida yetkazish",
+      happyClients: 'Mamnun mijozlar',
+      undamaged: 'Zararsiz yuklar',
+    },
+    counters: {
+      delivered: 'Yetkazilgan yuklar',
+      clients: 'Mijozlar',
+      kgPerMonth: 'Oyiga yuk, kg',
+      transit: "Yo'lda kunlar: avia / fura",
+    },
+    faqTitle: "Ko'p beriladigan savollar",
+    faqLead: 'Hammasi qanday ishlashi haqida qisqacha.',
+    faq: {
+      cost: {
+        q: 'Yetkazish narxi qanday hisoblanadi?',
+        a: "Narx = hisobiy og'irlik × 1 kg tarifi. Hisobiy og'irlik — haqiqiy va hajmiy og'irlikning kattasi (uzunlik×eni×balandlik sm da ÷ avia uchun {{aviaDivisor}}, fura uchun ÷ {{autoDivisor}}). Yuk og'ir bo'lsa, kilogramm arzonroq. Buyurtmaning minimal og'irligi — {{minWeight}} kg. Dastlabki narxni yuqoridagi kalkulyator ko'rsatadi.",
+      },
+      charge: {
+        q: 'Pul qachon yechiladi?',
+        a: "Katalogdan buyurtma rasmiylashtirilgandan taxminan {{chargeMinutes}} daqiqa o'tgach bog'langan kartadan avtomatik to'lanadi. O'z yukingiz uchun pul omborda tortilgandan keyin — aniq narx bo'yicha yechiladi.",
+      },
+      track: {
+        q: 'Yukni qanday kuzatish mumkin?',
+        a: "Shaxsiy kabinetda buyurtma holati progress-barda ko'rinadi, jo'natma yo'lda bo'lsa — marshrut va o'tilgan nazorat nuqtalari bilan xarita. Har bir holat o'zgarishi haqida bildirishnoma keladi.",
+      },
+      courier: {
+        q: 'Yukni kuryer orqali olish mumkinmi?',
+        a: "Ha. Buyurtma berishda «Kuryer»ni tanlab, manzilni kiriting — narx yuk og'irligiga bog'liq. Yoki O'zbekistondagi ombordan o'zingiz olib keting.",
+      },
+      send: {
+        q: "O'z yukimni omborga qanday yuboraman?",
+        a: "Ariza qoldiring: yukni tasvirlang, trek-raqam, taxminiy og'irlik va o'lchamlarni kiriting. Menejer siz bilan bog'lanib arizani kelishadi, so'ng yukni jo'natish mamlakatidagi omborimiz manziliga yuboring.",
+      },
+      time: {
+        q: 'Avia va fura bilan yetkazish qancha vaqt oladi?',
+        a: "Taxminan avia — {{aviaMin}}–{{aviaMax}} kun, fura — {{autoMin}}–{{autoMax}} kun jo'natilgan paytdan boshlab. Aniq muddat marshrut va bojxonaga bog'liq.",
+      },
+      cancel: {
+        q: 'Buyurtmani bekor qilish mumkinmi?',
+        a: "Ha. Buyurtma to'lanmaguncha va yuk omborga kelmaguncha uni o'zingiz bekor qilasiz. Keyin bekor qilishni ombor administratori jo'natishgacha istalgan paytda, mablag' qaytarilgan holda rasmiylashtiradi.",
+      },
+    },
     calculatorHint: "Ombor tariflari bo'yicha taxminiy yetkazish narxi.",
     howTitle: 'Bu qanday ishlaydi',
     step1: {

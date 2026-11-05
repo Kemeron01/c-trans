@@ -24,6 +24,7 @@ import {
   InputOTPGroup,
   InputOTPSlot,
 } from '@/components/ui/input-otp'
+import { InteractiveHoverButton } from '@/components/ui/interactive-hover-button'
 import { Label } from '@/components/ui/label'
 import { AuthLayout } from '../auth/auth-layout'
 
@@ -142,10 +143,15 @@ export function ClientSignIn() {
                   {error}
                 </p>
               )}
-              <Button disabled={request.isPending || !phone.trim()}>
-                {request.isPending && <Loader2 className='animate-spin' />}
+              <InteractiveHoverButton
+                type='submit'
+                disabled={request.isPending || !phone.trim()}
+              >
+                {request.isPending && (
+                  <Loader2 className='me-2 inline animate-spin' />
+                )}
                 {t('clientAuth.getCode')}
-              </Button>
+              </InteractiveHoverButton>
             </form>
           ) : (
             <div className='grid gap-3'>
@@ -170,13 +176,16 @@ export function ClientSignIn() {
                   {error}
                 </p>
               )}
-              <Button
+              <InteractiveHoverButton
+                type='button'
                 disabled={verify.isPending || code.length !== 6}
                 onClick={() => verify.mutate(code)}
               >
-                {verify.isPending && <Loader2 className='animate-spin' />}
+                {verify.isPending && (
+                  <Loader2 className='me-2 inline animate-spin' />
+                )}
                 {t('clientAuth.signIn')}
-              </Button>
+              </InteractiveHoverButton>
               <div className='flex justify-between text-sm'>
                 <Button
                   variant='link'

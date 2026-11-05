@@ -5,7 +5,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from '@tanstack/react-router'
-import { Loader2, LogIn } from 'lucide-react'
+import { Loader2 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 import { authApi, authKeys, type LoginResponse } from '@/api/auth'
@@ -14,7 +14,6 @@ import { useAuthStore } from '@/stores/auth-store'
 import { handleServerError } from '@/lib/handle-server-error'
 import { isStaff } from '@/lib/permissions'
 import { cn } from '@/lib/utils'
-import { Button } from '@/components/ui/button'
 import {
   Form,
   FormControl,
@@ -24,6 +23,7 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
+import { InteractiveHoverButton } from '@/components/ui/interactive-hover-button'
 import { PasswordInput } from '@/components/password-input'
 
 // Dev-only: `import.meta.env.DEV` inline keeps it out of the production bundle.
@@ -121,10 +121,14 @@ export function StaffSignInForm({
             {rootError}
           </p>
         )}
-        <Button className='mt-2' disabled={signIn.isPending}>
-          {signIn.isPending ? <Loader2 className='animate-spin' /> : <LogIn />}
+        <InteractiveHoverButton
+          type='submit'
+          className='mt-2 flex w-full items-center justify-center'
+          disabled={signIn.isPending}
+        >
+          {signIn.isPending && <Loader2 className='me-2 inline animate-spin' />}
           {t('auth.signIn')}
-        </Button>
+        </InteractiveHoverButton>
 
         {DemoAccounts && (
           <Suspense>

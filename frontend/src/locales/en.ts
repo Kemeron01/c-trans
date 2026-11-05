@@ -121,7 +121,54 @@ export const en: Translation = {
     demoAccounts: 'Demo accounts (mocks, password {{password}})',
   },
   landing: {
-    lead: 'We buy goods from our warehouse catalogs and deliver your parcels by air or truck. Price by weight, payment charged automatically from your linked card, tracking on a map.',
+    lead: 'We deliver your cargo and goods from the catalogs of our warehouses in China, Russia and the USA by air or truck. Price by weight, payment charged automatically from your linked card, tracking on a map.',
+    globeLabel:
+      'Globe with delivery lines from warehouses in China, Russia and the USA to Tashkent',
+    statsTitle: 'C-Trans in numbers',
+    statsLead: 'How we work: timing, safety and volumes.',
+    gauges: {
+      onTime: 'On-time deliveries',
+      happyClients: 'Happy clients',
+      undamaged: 'Cargo without damage',
+    },
+    counters: {
+      delivered: 'Shipments delivered',
+      clients: 'Clients',
+      kgPerMonth: 'Kg of cargo per month',
+      transit: 'Days in transit: air / truck',
+    },
+    faqTitle: 'Frequently asked questions',
+    faqLead: 'A short guide to how everything works.',
+    faq: {
+      cost: {
+        q: 'How is the delivery cost calculated?',
+        a: 'Price = chargeable weight × tariff per kg. Chargeable weight is the greater of actual and volumetric weight (L×W×H in cm ÷ {{aviaDivisor}} for air or ÷ {{autoDivisor}} for truck). The heavier the cargo, the cheaper the kilogram. The minimum order weight is {{minWeight}} kg. The calculator above shows a preliminary price.',
+      },
+      charge: {
+        q: 'When is the money charged?',
+        a: 'A catalog order is paid automatically from your linked card about {{chargeMinutes}} minutes after checkout. For your own cargo the money is charged after weighing at the warehouse — at the exact price.',
+      },
+      track: {
+        q: 'How can I track my cargo?',
+        a: 'In your account the order status is shown on a progress bar, and while the shipment is on the way — a map with the route and the checkpoints passed. Every status change sends you a notification.',
+      },
+      courier: {
+        q: 'Can the cargo be delivered by courier?',
+        a: 'Yes. Choose “Courier” at checkout and enter the address — the price depends on the weight. Or pick the cargo up yourself at the warehouse in Uzbekistan.',
+      },
+      send: {
+        q: 'How do I send my own cargo to the warehouse?',
+        a: 'Place a request: describe the cargo, give the tracking number and approximate weight and size. A manager will contact you and agree the request, then send the cargo to the address of our warehouse in the country of departure.',
+      },
+      time: {
+        q: 'How long does air and truck delivery take?',
+        a: 'Roughly {{aviaMin}}–{{aviaMax}} days by air and {{autoMin}}–{{autoMax}} days by truck from departure. Exact times depend on the route and customs.',
+      },
+      cancel: {
+        q: 'Can I cancel an order?',
+        a: 'Yes. Until the order is paid and the cargo reaches the warehouse you can cancel it yourself. After that a warehouse administrator cancels it — at any moment before shipping, with a refund.',
+      },
+    },
     calculatorHint: 'Preliminary delivery cost by the warehouse tariffs.',
     howTitle: 'How it works',
     step1: {

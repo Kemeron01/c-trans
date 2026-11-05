@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { Link, Outlet } from '@tanstack/react-router'
-import { LayoutDashboard, LogIn, Menu, ShoppingCart, User } from 'lucide-react'
+import { Link, Outlet, useNavigate } from '@tanstack/react-router'
+import { LayoutDashboard, Menu, ShoppingCart, User } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Logo } from '@/assets/logo'
 import { meQueryOptions } from '@/api/auth'
@@ -17,6 +17,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { InteractiveHoverButton } from '@/components/ui/interactive-hover-button'
 import {
   Sheet,
   SheetContent,
@@ -37,6 +38,7 @@ const NAV = [
 /** Client platform shell: header with navigation, cart and account. */
 export function SiteLayout() {
   const { t } = useTranslation()
+  const navigate = useNavigate()
   const token = useAuthStore((s) => s.accessToken)
   // Public pages: an expired token must not throw the visitor to sign-in
   const me = useQuery({
@@ -147,11 +149,13 @@ export function SiteLayout() {
               </DropdownMenu>
             )}
             {!user && (
-              <Button asChild size='sm' className='ms-1'>
-                <Link to='/sign-in'>
-                  <LogIn /> {t('site.signIn')}
-                </Link>
-              </Button>
+              <InteractiveHoverButton
+                type='button'
+                className='ms-1 py-1.5 text-sm'
+                onClick={() => navigate({ to: '/sign-in' })}
+              >
+                {t('site.signIn')}
+              </InteractiveHoverButton>
             )}
           </div>
         </div>

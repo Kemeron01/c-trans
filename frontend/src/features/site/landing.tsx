@@ -9,8 +9,13 @@ import { useLocalized } from '@/hooks/use-localized'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
+import { InteractiveGridPattern } from '@/components/ui/interactive-grid-pattern'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { DeliveryCalculator } from '@/components/delivery-calculator'
+import { AnimatedText, Reveal } from '@/components/reveal'
+import { DeliveryGlobe } from './delivery-globe'
+import { LandingFaq } from './landing-faq'
+import { LandingStats } from './landing-stats'
 
 export function Landing() {
   const { t } = useTranslation()
@@ -36,43 +41,66 @@ export function Landing() {
 
   return (
     <div className='grid gap-16'>
-      <section className='grid gap-6 py-6 text-center sm:py-12'>
-        <div className='flex flex-wrap justify-center gap-2'>
-          {foreign.map((w) => (
-            <Badge key={w.id} variant='secondary'>
-              {localized(w.country)} → {t('site.uzbekistan')}
-            </Badge>
-          ))}
+      <section className='relative isolate grid items-center gap-6 overflow-hidden py-8 sm:py-12 lg:grid-cols-2 lg:gap-10'>
+        {/* Thin interactive grid, faded out toward the edges so the text stays readable */}
+        <InteractiveGridPattern
+          width={44}
+          height={44}
+          squares={[40, 24]}
+          aria-hidden
+          className='-z-10 [mask-image:radial-gradient(ellipse_at_center,black_30%,transparent_72%)] stroke-foreground/10 dark:stroke-white/10'
+          squaresClassName='stroke-foreground/10 dark:stroke-white/10 hover:fill-primary/15'
+        />
+        <div className='grid content-center justify-items-start gap-5 text-start'>
+          <div className='flex flex-wrap gap-2'>
+            {foreign.map((w) => (
+              <Badge key={w.id} variant='secondary'>
+                {localized(w.country)} → {t('site.uzbekistan')}
+              </Badge>
+            ))}
+          </div>
+          <AnimatedText
+            as='h1'
+            className='max-w-xl text-3xl font-bold tracking-tight sm:text-5xl'
+          >
+            {t('landing.title')}
+          </AnimatedText>
+          <AnimatedText
+            as='p'
+            className='max-w-xl text-lg text-muted-foreground'
+            delay={0.15}
+          >
+            {t('landing.lead')}
+          </AnimatedText>
+          <div className='flex flex-wrap gap-3'>
+            <Button asChild size='lg'>
+              <Link to='/send'>
+                <Send /> {t('site.nav.send')}
+              </Link>
+            </Button>
+            <Button asChild size='lg' variant='outline'>
+              <Link to='/catalog'>
+                <ShoppingBag /> {t('site.nav.catalog')}
+              </Link>
+            </Button>
+          </div>
         </div>
-        <h1 className='mx-auto max-w-3xl text-3xl font-bold tracking-tight sm:text-5xl'>
-          {t('landing.title')}
-        </h1>
-        <p className='mx-auto max-w-2xl text-lg text-muted-foreground'>
-          {t('landing.lead')}
-        </p>
-        <div className='flex flex-wrap justify-center gap-3'>
-          <Button asChild size='lg'>
-            <Link to='/send'>
-              <Send /> {t('site.nav.send')}
-            </Link>
-          </Button>
-          <Button asChild size='lg' variant='outline'>
-            <Link to='/catalog'>
-              <ShoppingBag /> {t('site.nav.catalog')}
-            </Link>
-          </Button>
+        <div className='mx-auto w-full max-w-64 sm:max-w-sm lg:max-w-none'>
+          <DeliveryGlobe />
         </div>
       </section>
 
+      <LandingStats />
+
       <section className='grid gap-4' id='calculator'>
         <div className='flex flex-wrap items-end justify-between gap-3'>
-          <div>
-            <h2 className='text-2xl font-bold tracking-tight'>
+          <div className='grid gap-1'>
+            <AnimatedText className='text-2xl font-bold tracking-tight'>
               {t('nav.sections.calculator')}
-            </h2>
-            <p className='text-muted-foreground'>
+            </AnimatedText>
+            <AnimatedText as='p' className='text-muted-foreground' delay={0.1}>
               {t('landing.calculatorHint')}
-            </p>
+            </AnimatedText>
           </div>
           <Tabs
             value={warehouseId ? String(warehouseId) : ''}
@@ -88,35 +116,41 @@ export function Landing() {
           </Tabs>
         </div>
         {pricing && methods.length > 0 && (
-          <DeliveryCalculator
-            key={warehouseId}
-            settings={pricing.settings}
-            tariffs={pricing.tariffs}
-            methods={methods}
-          />
+          <Reveal>
+            <DeliveryCalculator
+              key={warehouseId}
+              settings={pricing.settings}
+              tariffs={pricing.tariffs}
+              methods={methods}
+            />
+          </Reveal>
         )}
       </section>
 
       <section className='grid gap-4'>
-        <h2 className='text-2xl font-bold tracking-tight'>
+        <AnimatedText className='text-2xl font-bold tracking-tight'>
           {t('landing.howTitle')}
-        </h2>
+        </AnimatedText>
         <div className='grid gap-4 sm:grid-cols-2 lg:grid-cols-4'>
           {steps.map(({ icon: Icon, key }, i) => (
-            <Card key={key}>
-              <CardContent className='grid gap-2'>
-                <Icon className='size-6 text-primary' />
-                <div className='font-medium'>
-                  {i + 1}. {t(`landing.${key}.title`)}
-                </div>
-                <p className='text-sm text-muted-foreground'>
-                  {t(`landing.${key}.text`)}
-                </p>
-              </CardContent>
-            </Card>
+            <Reveal key={key} delay={i * 0.08} className='h-full'>
+              <Card className='h-full'>
+                <CardContent className='grid gap-2'>
+                  <Icon className='size-6 text-primary' />
+                  <div className='font-medium'>
+                    {i + 1}. {t(`landing.${key}.title`)}
+                  </div>
+                  <p className='text-sm text-muted-foreground'>
+                    {t(`landing.${key}.text`)}
+                  </p>
+                </CardContent>
+              </Card>
+            </Reveal>
           ))}
         </div>
       </section>
+
+      <LandingFaq />
     </div>
   )
 }
