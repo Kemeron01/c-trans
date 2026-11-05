@@ -58,7 +58,9 @@ export function DeliveryGlobe({ className }: { className?: string }) {
     [warehouses]
   )
 
-  if (!palette) return null
+  // Not before the warehouses are loaded: cobe warns ("no buffer is bound to
+  // enabled attribute") when it draws with empty markers / arcs
+  if (!palette || !markers.length) return null
   return (
     <Globe
       className={className}

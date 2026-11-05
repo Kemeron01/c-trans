@@ -29,7 +29,8 @@ function HoverCardContent({
         align={align}
         sideOffset={sideOffset}
         className={cn(
-          'z-50 w-64 origin-(--radix-hover-card-content-transform-origin) rounded-md border bg-popover p-4 text-popover-foreground shadow-md outline-hidden',
+          // Closed = gone at once: no exit animation ghost if the trigger unmounts
+          'z-50 w-64 origin-(--radix-hover-card-content-transform-origin) rounded-md border bg-popover p-4 text-popover-foreground shadow-md outline-hidden data-[state=closed]:hidden',
           className
         )}
         {...props}

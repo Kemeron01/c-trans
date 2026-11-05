@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
+import { useLocation } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
 import { ordersQuery } from '@/api/orders'
 import { shipmentQuery } from '@/api/shipments'
@@ -13,6 +14,22 @@ import {
 import { ShipmentStatusBadge } from '@/features/shipments/shipment-status-badge'
 
 /**
+ * Open state of a hover card that is closed by a route change. The card
+ * remembers the path it was opened on and counts as open only there, so
+ * navigating (e.g. clicking an order number while the card is shown) closes
+ * it in the same render, before its trigger unmounts and Popper drops the
+ * card to the page corner.
+ */
+function useRouteBoundOpen() {
+  const pathname = useLocation({ select: (l) => l.pathname })
+  const [openOn, setOpenOn] = useState<string | null>(null)
+  return [
+    openOn === pathname,
+    (open: boolean) => setOpenOn(open ? pathname : null),
+  ] as const
+}
+
+/**
  * Hover a client (name / code) to see phone, code and number of orders.
  * `children` is the element to hover (rendered as-is, no extra wrapper).
  */
@@ -24,7 +41,7 @@ export function ClientHoverCard({
   children: React.ReactElement
 }) {
   const { t } = useTranslation()
-  const [open, setOpen] = useState(false)
+  const [open, setOpen] = useRouteBoundOpen()
   // Orders of this client visible to the viewer; count only, loaded on hover
   const orders = useQuery({
     ...ordersQuery({ search: client.client_code, page_size: 1 }),
@@ -61,7 +78,7 @@ export function ShipmentHoverCard({
   children: React.ReactElement
 }) {
   const { t } = useTranslation()
-  const [open, setOpen] = useState(false)
+  const [open, setOpen] = useRouteBoundOpen()
   const shipment = useQuery({ ...shipmentQuery(shipmentId), enabled: open })
   const s = shipment.data
   return (

@@ -1,8 +1,7 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
   type ColumnDef,
   type ColumnFiltersState,
-  type SortingState,
   type VisibilityState,
   flexRender,
   getCoreRowModel,
@@ -15,7 +14,7 @@ import {
 } from '@tanstack/react-table'
 import { useTranslation } from 'react-i18next'
 import { cn } from '@/lib/utils'
-import { type ServerTable } from '@/hooks/use-server-table'
+import { type ServerTable, useServerTable } from '@/hooks/use-server-table'
 import { Skeleton } from '@/components/ui/skeleton'
 import {
   Table,
@@ -63,37 +62,44 @@ export function DataTable<TData>({
   toolbarExtra,
 }: DataTableProps<TData>) {
   const { t } = useTranslation()
-  const [localSorting, setSorting] = useState<SortingState>(() =>
-    columns.some(
-      (c) =>
-        c.id === 'created_at' ||
-        ('accessorKey' in c && c.accessorKey === 'created_at')
-    )
-      ? [{ id: 'created_at', desc: true }]
-      : []
+  // The table state lives in the URL in both modes (page, page_size,
+  // ordering, search, filters). Client mode sorts/filters/pages the rows in
+  // the browser; server mode lets the backend do it.
+  const hasCreatedAt = columns.some(
+    (c) =>
+      c.id === 'created_at' ||
+      ('accessorKey' in c && c.accessorKey === 'created_at')
   )
-  const [columnFilters, setColumnFilters] =
-    useState<ColumnFiltersState>(initialColumnFilters)
+  const filterIds = [
+    ...(filters ?? []).map((f) => f.columnId),
+    ...initialColumnFilters.map((f) => f.id),
+  ]
+  const urlTable = useServerTable({
+    ordering: hasCreatedAt ? '-created_at' : '',
+    filterParams: Object.fromEntries(filterIds.map((id) => [id, id])),
+    initialFilters: initialColumnFilters,
+  }).bind(0)
+  const state = server ?? urlTable
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
-  const [localGlobalFilter, setGlobalFilter] = useState('')
-  const sorting = server?.sorting ?? localSorting
-  const globalFilter = server?.globalFilter ?? localGlobalFilter
 
   // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable<TData>({
     data: data ?? [],
     columns,
     state: {
-      sorting,
-      columnFilters: server?.columnFilters ?? columnFilters,
+      sorting: state.sorting,
+      columnFilters: state.columnFilters,
       columnVisibility,
-      globalFilter,
-      ...(server && { pagination: server.pagination }),
+      globalFilter: state.globalFilter,
+      pagination: state.pagination,
     },
-    onSortingChange: server?.onSortingChange ?? setSorting,
-    onColumnFiltersChange: server?.onColumnFiltersChange ?? setColumnFilters,
+    onSortingChange: state.onSortingChange,
+    onColumnFiltersChange: state.onColumnFiltersChange,
     onColumnVisibilityChange: setColumnVisibility,
-    onGlobalFilterChange: server?.onGlobalFilterChange ?? setGlobalFilter,
+    onGlobalFilterChange: state.onGlobalFilterChange,
+    onPaginationChange: state.onPaginationChange,
+    // Filters / search / sorting reset the page themselves (in the URL hook)
+    autoResetPageIndex: false,
     getCoreRowModel: getCoreRowModel(),
     ...(server
       ? {
@@ -101,7 +107,6 @@ export function DataTable<TData>({
           manualSorting: true,
           manualFiltering: true,
           rowCount: server.rowCount,
-          onPaginationChange: server.onPaginationChange,
         }
       : {
           getFilteredRowModel: getFilteredRowModel(),
@@ -111,6 +116,16 @@ export function DataTable<TData>({
           getFacetedUniqueValues: getFacetedUniqueValues(),
         }),
   })
+
+  // A link to a page that no longer exists (fewer rows now) shows the last one
+  const pageCount = table.getPageCount()
+  const pageIndex = state.pagination.pageIndex
+  const onPaginationChange = state.onPaginationChange
+  useEffect(() => {
+    if (!isLoading && pageCount > 0 && pageIndex >= pageCount) {
+      onPaginationChange((p) => ({ ...p, pageIndex: pageCount - 1 }))
+    }
+  }, [isLoading, pageCount, pageIndex, onPaginationChange])
 
   // Right-click menu: the same actions as the "⋯" column (see actionsColumn)
   const getRowActions = columns.find((c) => c.meta?.rowActions)?.meta

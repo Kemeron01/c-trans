@@ -55,7 +55,7 @@ export function Globe({
   label,
   ...appearance
 }: GlobeProps) {
-  const canvasRef = useRef<HTMLCanvasElement>(null)
+  const hostRef = useRef<HTMLDivElement>(null)
   const reduced = useReducedMotion()
   const latest = useRef(appearance)
   latest.current = appearance
@@ -69,9 +69,36 @@ export function Globe({
   const ensureLoop = useRef<() => void>(() => {})
 
   // Created once per mount
+  // The canvas is created here, not by React: a WebGL context keeps its
+  // enabled vertex attributes, so re-creating cobe on the same canvas
+  // (StrictMode runs effects twice in dev) makes the first draw warn
+  // "no buffer is bound to enabled attribute".
   useEffect(() => {
-    const canvas = canvasRef.current
-    if (!canvas) return
+    const host = hostRef.current
+    if (!host) return
+    const canvas = document.createElement('canvas')
+    canvas.setAttribute('role', 'img')
+    canvas.className =
+      'size-full cursor-grab touch-pan-y opacity-0 transition-opacity duration-500 active:cursor-grabbing'
+    host.append(canvas)
+    const onDown = (e: PointerEvent) => {
+      dragging.current = true
+      lastX.current = e.clientX
+      canvas.setPointerCapture(e.pointerId)
+      ensureLoop.current()
+    }
+    const onMove = (e: PointerEvent) => {
+      if (!dragging.current) return
+      phi.current += (e.clientX - lastX.current) / 200
+      lastX.current = e.clientX
+    }
+    const onUp = () => {
+      dragging.current = false
+    }
+    canvas.addEventListener('pointerdown', onDown)
+    canvas.addEventListener('pointermove', onMove)
+    canvas.addEventListener('pointerup', onUp)
+    canvas.addEventListener('pointercancel', onUp)
     const dpr = Math.min(window.devicePixelRatio || 1, 2)
     // Size in CSS pixels, from the ResizeObserver (never read per frame)
     let size = Math.max(canvas.offsetWidth, 1)
@@ -141,8 +168,16 @@ export function Globe({
       document.removeEventListener('visibilitychange', onVisibility)
       globeRef.current = null
       globe.destroy()
+      // cobe wraps the canvas in a div: remove whatever it left in the host
+      host.replaceChildren()
     }
   }, [])
+
+  // The label follows the language without re-creating anything
+  useEffect(() => {
+    const canvas = hostRef.current?.querySelector('canvas')
+    if (label) canvas?.setAttribute('aria-label', label)
+  }, [label])
 
   // Data / colors / theme: update the live globe
   const { markers, arcs, dark, baseColor, glowColor, markerColor, arcColor } =
@@ -157,26 +192,9 @@ export function Globe({
   }, [reduced])
 
   return (
-    <div className={cn('relative mx-auto aspect-square w-full', className)}>
-      <canvas
-        ref={canvasRef}
-        role='img'
-        aria-label={label}
-        className='size-full cursor-grab touch-pan-y opacity-0 transition-opacity duration-500 active:cursor-grabbing'
-        onPointerDown={(e) => {
-          dragging.current = true
-          lastX.current = e.clientX
-          e.currentTarget.setPointerCapture(e.pointerId)
-          ensureLoop.current()
-        }}
-        onPointerMove={(e) => {
-          if (!dragging.current) return
-          phi.current += (e.clientX - lastX.current) / 200
-          lastX.current = e.clientX
-        }}
-        onPointerUp={() => (dragging.current = false)}
-        onPointerCancel={() => (dragging.current = false)}
-      />
-    </div>
+    <div
+      ref={hostRef}
+      className={cn('relative mx-auto aspect-square w-full', className)}
+    />
   )
 }

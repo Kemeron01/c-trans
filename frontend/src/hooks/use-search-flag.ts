@@ -16,6 +16,8 @@ export function useSearchFlag(name: string): [boolean, (on: boolean) => void] {
       search: ((prev: Record<string, unknown>) => ({
         ...prev,
         [name]: next ? true : undefined,
+        // A different list means page 1
+        page: undefined,
       })) as never,
     })
   return [on, set]
