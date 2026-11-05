@@ -19,6 +19,7 @@ import { useCurrentUser } from '@/hooks/use-current-user'
 import { useLocalized } from '@/hooks/use-localized'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Progress } from '@/components/ui/progress'
 import { Skeleton } from '@/components/ui/skeleton'
 import {
   Table,
@@ -30,6 +31,7 @@ import {
 } from '@/components/ui/table'
 import { ConfirmDialog } from '@/components/confirm-dialog'
 import { EmptyState } from '@/components/empty-state'
+import { IconTooltip } from '@/components/icon-tooltip'
 import { AppHeader } from '@/components/layout/app-header'
 import { Main } from '@/components/layout/main'
 import { OrderStatusBadge } from '../orders/order-status-badge'
@@ -107,6 +109,14 @@ function ShipmentView({ shipment: s }: { shipment: Shipment }) {
     user.role === 'super_admin' ||
     user.warehouse?.id === s.destination_warehouse.id
   const forming = s.status === 'forming'
+  // Route = origin + checkpoints + destination; 100% only when arrived
+  const routeTotal = s.checkpoints.length + 2
+  const routePassed =
+    s.status === 'arrived'
+      ? routeTotal
+      : s.status === 'in_transit'
+        ? 1 + s.checkpoints.length
+        : 0
 
   const act = useMutation({
     mutationFn: (
@@ -233,14 +243,16 @@ function ShipmentView({ shipment: s }: { shipment: Shipment }) {
                     </TableCell>
                     {forming && isOrigin && (
                       <TableCell>
-                        <Button
-                          size='icon'
-                          variant='ghost'
-                          aria-label={t('shipments.removeOrder')}
-                          onClick={() => setDialog({ remove: o.id })}
-                        >
-                          <Trash2 />
-                        </Button>
+                        <IconTooltip label={t('shipments.removeOrder')}>
+                          <Button
+                            size='icon'
+                            variant='ghost'
+                            aria-label={t('shipments.removeOrder')}
+                            onClick={() => setDialog({ remove: o.id })}
+                          >
+                            <Trash2 />
+                          </Button>
+                        </IconTooltip>
                       </TableCell>
                     )}
                   </TableRow>
@@ -264,7 +276,22 @@ function ShipmentView({ shipment: s }: { shipment: Shipment }) {
           <CardHeader>
             <CardTitle>{t('shipments.checkpoints')}</CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className='grid gap-4'>
+            <div className='grid gap-1.5'>
+              <div className='flex justify-between text-xs text-muted-foreground'>
+                <span>{t('prog.routeProgress')}</span>
+                <span>
+                  {t('prog.routeOf', {
+                    passed: routePassed,
+                    total: routeTotal,
+                  })}
+                </span>
+              </div>
+              <Progress
+                value={(routePassed / routeTotal) * 100}
+                aria-label={t('prog.routeProgress')}
+              />
+            </div>
             {s.checkpoints.length ? (
               <ol className='relative grid gap-4 border-s ps-5 text-sm'>
                 {s.checkpoints.map((c) => (

@@ -1,7 +1,54 @@
 import { type Translation } from './types'
 
 export const en: Translation = {
+  tip: {
+    toggleSidebar: 'Show / hide menu',
+    increase: 'Add one more',
+    decrease: 'Remove one',
+    moreInfo: 'More info',
+    openMenu: 'Open menu',
+    profile: 'Profile',
+    cart: 'Cart',
+    notifications: 'Notifications',
+    language: 'Language',
+  },
+  hover: {
+    phone: 'Phone',
+    code: 'Client code',
+    ordersCount: 'Orders: {{count}}',
+    route: 'Route',
+    dates: 'Dates',
+    departure: 'Departure',
+    arrival: 'Arrival',
+  },
+  prog: {
+    routeProgress: 'Route points passed',
+    routeOf: '{{passed}} of {{total}}',
+    stockOf: '{{available}} of {{total}}',
+  },
+  ordersFilter: {
+    all: 'All',
+    active: 'Active',
+    done: 'Completed',
+    label: 'Order filter',
+    emptyFiltered: 'No orders in this category.',
+  },
+  historyCollapse: {
+    showAll: 'Show full history ({{count}})',
+    showLess: 'Collapse',
+  },
+  siteNav: {
+    help: 'Help',
+    allCountries: 'All countries',
+    catalogHint: 'Goods from warehouses in the chosen country',
+  },
+  cartBar: {
+    total: 'Total',
+    open: 'View total and checkout',
+  },
   common: {
+    open: 'Open',
+    search: 'Search...',
     notFoundHint: "The record does not exist or you don't have access to it.",
     delete: 'Delete',
     deleted: 'Deleted.',
@@ -719,6 +766,7 @@ export const en: Translation = {
     delivered: 'Delivered',
   },
   dataTable: {
+    activeOnly: 'Active only',
     filter: 'Filter...',
     reset: 'Reset',
     view: 'View',

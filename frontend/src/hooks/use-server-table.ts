@@ -59,10 +59,15 @@ export function useServerTable(config: Config = {}) {
     fixed,
   } = config
 
-  const [pagination, setPagination] = useState<PaginationState>({
-    pageIndex: 0,
-    pageSize,
-  })
+  const [paged, setPaged] = useState({ pageIndex: 0, pageSize, key: '' })
+  // A different constant filter (e.g. the "active only" toggle) means page 1
+  const fixedKey = JSON.stringify(fixed ?? {})
+  const pagination: PaginationState = {
+    pageIndex: paged.key === fixedKey ? paged.pageIndex : 0,
+    pageSize: paged.pageSize,
+  }
+  const setPagination = (next: PaginationState) =>
+    setPaged({ ...next, key: fixedKey })
   const [sorting, setSorting] = useState<SortingState>(() =>
     toSorting(defaultOrdering, orderingFields)
   )
@@ -79,7 +84,7 @@ export function useServerTable(config: Config = {}) {
     return () => clearTimeout(id)
   }, [globalFilter])
 
-  const firstPage = () => setPagination((p) => ({ ...p, pageIndex: 0 }))
+  const firstPage = () => setPagination({ ...pagination, pageIndex: 0 })
 
   // Not memoised: react-query hashes the params by content
   const params: ListParams = { ...fixed }

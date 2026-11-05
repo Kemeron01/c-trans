@@ -24,10 +24,12 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet'
+import { IconTooltip } from '@/components/icon-tooltip'
 import { LanguageSwitch } from '@/components/language-switch'
 import { SignOutDialog } from '@/components/sign-out-dialog'
 import { ThemeSwitch } from '@/components/theme-switch'
 import { NotificationsBell } from './notifications-bell'
+import { SiteNav } from './site-nav'
 
 const NAV = [
   { to: '/catalog', key: 'site.nav.catalog' },
@@ -70,12 +72,14 @@ export function SiteLayout() {
       <header className='sticky top-0 z-40 border-b bg-background/90 backdrop-blur'>
         <div className='mx-auto flex h-16 max-w-6xl items-center gap-2 px-4'>
           <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
-            <SheetTrigger asChild>
-              <Button variant='ghost' size='icon' className='md:hidden'>
-                <Menu />
-                <span className='sr-only'>{t('site.menu')}</span>
-              </Button>
-            </SheetTrigger>
+            <IconTooltip label={t('site.menu')}>
+              <SheetTrigger asChild>
+                <Button variant='ghost' size='icon' className='md:hidden'>
+                  <Menu />
+                  <span className='sr-only'>{t('site.menu')}</span>
+                </Button>
+              </SheetTrigger>
+            </IconTooltip>
             <SheetContent side='left' className='w-64 p-4'>
               <SheetTitle>{t('common.appName')}</SheetTitle>
               <nav className='mt-4 grid'>{links(() => setMenuOpen(false))}</nav>
@@ -85,27 +89,29 @@ export function SiteLayout() {
             <Logo />
             <span className='max-sm:hidden'>{t('common.appName')}</span>
           </Link>
-          <nav className='ms-4 hidden items-center md:flex'>{links()}</nav>
+          <SiteNav />
 
           <div className='ms-auto flex items-center gap-1'>
             <LanguageSwitch />
             <ThemeSwitch />
-            <Button
-              asChild
-              variant='ghost'
-              size='icon'
-              className='relative rounded-full'
-            >
-              <Link to='/cart'>
-                <ShoppingCart />
-                {cartCount > 0 && (
-                  <span className='absolute end-0.5 top-0.5 flex min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-medium text-primary-foreground'>
-                    {cartCount}
-                  </span>
-                )}
-                <span className='sr-only'>{t('site.nav.cart')}</span>
-              </Link>
-            </Button>
+            <IconTooltip label={t('site.nav.cart')}>
+              <Button
+                asChild
+                variant='ghost'
+                size='icon'
+                className='relative rounded-full'
+              >
+                <Link to='/cart'>
+                  <ShoppingCart />
+                  {cartCount > 0 && (
+                    <span className='absolute end-0.5 top-0.5 flex min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-medium text-primary-foreground'>
+                      {cartCount}
+                    </span>
+                  )}
+                  <span className='sr-only'>{t('site.nav.cart')}</span>
+                </Link>
+              </Button>
+            </IconTooltip>
             {user && !isStaff(user) && <NotificationsBell />}
             {user && isStaff(user) && (
               <Button asChild variant='outline' size='sm'>
@@ -116,12 +122,18 @@ export function SiteLayout() {
             )}
             {user && !isStaff(user) && (
               <DropdownMenu modal={false}>
-                <DropdownMenuTrigger asChild>
-                  <Button variant='ghost' size='icon' className='rounded-full'>
-                    <User />
-                    <span className='sr-only'>{t('site.account')}</span>
-                  </Button>
-                </DropdownMenuTrigger>
+                <IconTooltip label={t('site.account')}>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant='ghost'
+                      size='icon'
+                      className='rounded-full'
+                    >
+                      <User />
+                      <span className='sr-only'>{t('site.account')}</span>
+                    </Button>
+                  </DropdownMenuTrigger>
+                </IconTooltip>
                 <DropdownMenuContent align='end' className='w-56'>
                   <DropdownMenuLabel className='font-normal'>
                     <div className='font-medium'>

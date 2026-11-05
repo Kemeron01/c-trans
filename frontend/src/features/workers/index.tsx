@@ -14,7 +14,7 @@ import { ConfirmDialog } from '@/components/confirm-dialog'
 import {
   DataTable,
   DataTableColumnHeader,
-  RowActions,
+  actionsColumn,
   inSelected,
 } from '@/components/data-table'
 import { AppHeader } from '@/components/layout/app-header'
@@ -92,30 +92,21 @@ export function Workers() {
       filterFn: inSelected,
       cell: ({ row }) => <ActiveBadge active={row.original.is_active} />,
     },
-    {
-      id: 'actions',
-      meta: { className: 'w-12' },
-      cell: ({ row }) => {
-        const worker = row.original
-        return (
-          <RowActions
-            actions={[
-              {
-                label: t('staff.setPassword'),
-                icon: KeyRound,
-                onSelect: () => setDialog({ type: 'password', worker }),
-              },
-              {
-                label: t(worker.is_active ? 'staff.block' : 'staff.unblock'),
-                icon: worker.is_active ? Lock : LockOpen,
-                destructive: worker.is_active,
-                onSelect: () => setDialog({ type: 'toggle', worker }),
-              },
-            ]}
-          />
-        )
-      },
-    },
+    actionsColumn((worker) => {
+      return [
+        {
+          label: t('staff.setPassword'),
+          icon: KeyRound,
+          onSelect: () => setDialog({ type: 'password', worker }),
+        },
+        {
+          label: t(worker.is_active ? 'staff.block' : 'staff.unblock'),
+          icon: worker.is_active ? Lock : LockOpen,
+          destructive: worker.is_active,
+          onSelect: () => setDialog({ type: 'toggle', worker }),
+        },
+      ]
+    }),
   ]
 
   return (

@@ -13,7 +13,7 @@ import { ConfirmDialog } from '@/components/confirm-dialog'
 import {
   DataTable,
   DataTableColumnHeader,
-  RowActions,
+  actionsColumn,
   inSelected,
 } from '@/components/data-table'
 import { AppHeader } from '@/components/layout/app-header'
@@ -89,35 +89,26 @@ export function Admins() {
       filterFn: inSelected,
       cell: ({ row }) => <ActiveBadge active={row.original.is_active} />,
     },
-    {
-      id: 'actions',
-      meta: { className: 'w-12' },
-      cell: ({ row }) => {
-        const admin = row.original
-        return (
-          <RowActions
-            actions={[
-              {
-                label: t('common.edit'),
-                icon: Pencil,
-                onSelect: () => setDialog({ type: 'form', admin }),
-              },
-              {
-                label: t('staff.setPassword'),
-                icon: KeyRound,
-                onSelect: () => setDialog({ type: 'password', admin }),
-              },
-              {
-                label: t(admin.is_active ? 'staff.block' : 'staff.unblock'),
-                icon: admin.is_active ? Lock : LockOpen,
-                destructive: admin.is_active,
-                onSelect: () => setDialog({ type: 'toggle', admin }),
-              },
-            ]}
-          />
-        )
-      },
-    },
+    actionsColumn((admin) => {
+      return [
+        {
+          label: t('common.edit'),
+          icon: Pencil,
+          onSelect: () => setDialog({ type: 'form', admin }),
+        },
+        {
+          label: t('staff.setPassword'),
+          icon: KeyRound,
+          onSelect: () => setDialog({ type: 'password', admin }),
+        },
+        {
+          label: t(admin.is_active ? 'staff.block' : 'staff.unblock'),
+          icon: admin.is_active ? Lock : LockOpen,
+          destructive: admin.is_active,
+          onSelect: () => setDialog({ type: 'toggle', admin }),
+        },
+      ]
+    }),
   ]
 
   return (

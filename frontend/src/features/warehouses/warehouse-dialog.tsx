@@ -20,6 +20,7 @@ import {
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { Switch } from '@/components/ui/switch'
+import { Combobox } from '@/components/combobox'
 import { FormDialog } from '@/components/form-dialog'
 import { SelectDropdown } from '@/components/select-dropdown'
 
@@ -182,9 +183,9 @@ export function WarehouseDialog({ warehouse, onClose }: WarehouseDialogProps) {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>{t('warehouses.country')}</FormLabel>
-                  <SelectDropdown
-                    isControlled
-                    defaultValue={field.value}
+                  <Combobox
+                    inForm
+                    value={field.value}
                     onValueChange={field.onChange}
                     isPending={countries.isLoading}
                     className='w-full'

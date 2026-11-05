@@ -1,18 +1,23 @@
 import { useQuery } from '@tanstack/react-query'
-import { Link } from '@tanstack/react-router'
+import { Link, useNavigate } from '@tanstack/react-router'
 import { type ColumnDef } from '@tanstack/react-table'
+import { ExternalLink } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { ordersQuery } from '@/api/orders'
 import { type Order } from '@/api/types'
 import { formatDateTime, formatUsd } from '@/lib/format'
 import { ORDER_STATUSES } from '@/lib/order-flow'
+import { useSearchFlag } from '@/hooks/use-search-flag'
 import { useServerTable } from '@/hooks/use-server-table'
 import { Badge } from '@/components/ui/badge'
 import {
   DataTable,
   DataTableColumnHeader,
+  actionsColumn,
+  ActiveToggle,
   inSelected,
 } from '@/components/data-table'
+import { ClientHoverCard } from '@/components/hover-cards'
 import { AppHeader } from '@/components/layout/app-header'
 import { Main } from '@/components/layout/main'
 import { PageHeading } from '@/components/layout/page-heading'
@@ -20,7 +25,10 @@ import { OrderStatusBadge } from './order-status-badge'
 
 export function Orders() {
   const { t } = useTranslation()
+  const navigate = useNavigate()
+  const [activeOnly, setActiveOnly] = useSearchFlag('active')
   const { params, bind } = useServerTable({
+    fixed: activeOnly ? { active: true } : undefined,
     filterParams: { status: 'status', type: 'type', route: 'method' },
     orderingFields: { total: 'total_usd' },
   })
@@ -62,10 +70,14 @@ export function Orders() {
       meta: { label: t('orders.client') },
       cell: ({ row }) => (
         <div className='text-sm'>
-          <div>{row.original.client.full_name}</div>
-          <div className='font-mono text-xs text-muted-foreground'>
-            {row.original.client.client_code}
-          </div>
+          <ClientHoverCard client={row.original.client}>
+            <div className='w-fit cursor-default'>
+              <div>{row.original.client.full_name}</div>
+              <div className='font-mono text-xs text-muted-foreground'>
+                {row.original.client.client_code}
+              </div>
+            </div>
+          </ClientHoverCard>
         </div>
       ),
     },
@@ -132,6 +144,17 @@ export function Orders() {
       meta: { label: t('orders.createdAt') },
       cell: ({ row }) => formatDateTime(row.original.created_at),
     },
+    actionsColumn((o) => [
+      {
+        label: t('common.open'),
+        icon: ExternalLink,
+        onSelect: () =>
+          navigate({
+            to: '/admin/orders/$orderId',
+            params: { orderId: String(o.id) },
+          }),
+      },
+    ]),
   ]
 
   return (
@@ -146,6 +169,12 @@ export function Orders() {
           columns={columns}
           data={data?.results}
           server={bind(data?.count ?? 0)}
+          toolbarExtra={
+            <ActiveToggle
+              pressed={activeOnly}
+              onPressedChange={setActiveOnly}
+            />
+          }
           isLoading={isLoading}
           searchPlaceholder={t('orders.search')}
           filters={[

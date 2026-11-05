@@ -5,7 +5,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link, useNavigate } from '@tanstack/react-router'
 import { type ColumnDef } from '@tanstack/react-table'
-import { Plus } from 'lucide-react'
+import { ExternalLink, Plus } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 import { warehousesQuery } from '@/api/reference'
@@ -15,6 +15,7 @@ import { applyServerErrors } from '@/lib/form-errors'
 import { formatDate, todayLocal } from '@/lib/format'
 import { requiredString } from '@/lib/validation'
 import { useCurrentUser } from '@/hooks/use-current-user'
+import { useSearchFlag } from '@/hooks/use-search-flag'
 import { useServerTable } from '@/hooks/use-server-table'
 import { Button } from '@/components/ui/button'
 import {
@@ -24,7 +25,13 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form'
-import { DataTable, inSelected } from '@/components/data-table'
+import { Combobox } from '@/components/combobox'
+import {
+  ActiveToggle,
+  DataTable,
+  actionsColumn,
+  inSelected,
+} from '@/components/data-table'
 import { FormDialog } from '@/components/form-dialog'
 import { TextField } from '@/components/form-fields'
 import { AppHeader } from '@/components/layout/app-header'
@@ -37,7 +44,10 @@ import { ShipmentStatusBadge } from './shipment-status-badge'
 export function Shipments() {
   const { t } = useTranslation()
   const user = useCurrentUser()
+  const navigate = useNavigate()
+  const [activeOnly, setActiveOnly] = useSearchFlag('active')
   const { params, bind } = useServerTable({
+    fixed: activeOnly ? { active: true } : undefined,
     filterParams: { status: 'status', route: 'method' },
   })
   const { data, isLoading } = useQuery(shipmentsQuery(params))
@@ -108,6 +118,17 @@ export function Shipments() {
       header: t('shipments.ordersCount'),
       cell: ({ row }) => row.original.order_ids.length,
     },
+    actionsColumn((s) => [
+      {
+        label: t('common.open'),
+        icon: ExternalLink,
+        onSelect: () =>
+          navigate({
+            to: '/admin/shipments/$shipmentId',
+            params: { shipmentId: String(s.id) },
+          }),
+      },
+    ]),
   ]
 
   return (
@@ -128,6 +149,12 @@ export function Shipments() {
           columns={columns}
           data={data?.results}
           server={bind(data?.count ?? 0)}
+          toolbarExtra={
+            <ActiveToggle
+              pressed={activeOnly}
+              onPressedChange={setActiveOnly}
+            />
+          }
           isLoading={isLoading}
           searchPlaceholder={t('shipments.search')}
           filters={[
@@ -241,9 +268,9 @@ function CreateShipmentDialog({ onClose }: { onClose: () => void }) {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>{t('shipments.destination')}</FormLabel>
-                <SelectDropdown
-                  isControlled
-                  defaultValue={field.value}
+                <Combobox
+                  inForm
+                  value={field.value}
                   onValueChange={field.onChange}
                   isPending={warehouses.isLoading}
                   className='w-full'

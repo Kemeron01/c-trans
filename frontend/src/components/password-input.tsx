@@ -2,6 +2,7 @@ import * as React from 'react'
 import { Eye, EyeOff } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { cn } from '@/lib/utils'
+import { IconTooltip } from '@/components/icon-tooltip'
 import { Button } from './ui/button'
 
 type PasswordInputProps = Omit<
@@ -29,19 +30,25 @@ export function PasswordInput({
         disabled={disabled}
         {...props}
       />
-      <Button
-        type='button'
-        size='icon'
-        variant='ghost'
-        disabled={disabled}
-        className='absolute inset-e-1 top-1/2 h-6 w-6 -translate-y-1/2 rounded-md text-muted-foreground'
-        onClick={() => setShowPassword((prev) => !prev)}
+      <IconTooltip
+        label={
+          showPassword ? t('common.hidePassword') : t('common.showPassword')
+        }
       >
-        {showPassword ? <Eye size={18} /> : <EyeOff size={18} />}
-        <span className='sr-only'>
-          {showPassword ? t('common.hidePassword') : t('common.showPassword')}
-        </span>
-      </Button>
+        <Button
+          type='button'
+          size='icon'
+          variant='ghost'
+          disabled={disabled}
+          className='absolute inset-e-1 top-1/2 h-6 w-6 -translate-y-1/2 rounded-md text-muted-foreground'
+          onClick={() => setShowPassword((prev) => !prev)}
+        >
+          {showPassword ? <Eye size={18} /> : <EyeOff size={18} />}
+          <span className='sr-only'>
+            {showPassword ? t('common.hidePassword') : t('common.showPassword')}
+          </span>
+        </Button>
+      </IconTooltip>
     </div>
   )
 }

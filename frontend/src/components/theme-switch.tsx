@@ -4,6 +4,7 @@ import { cn } from '@/lib/utils'
 import { useTheme } from '@/context/theme-provider'
 import { AnimatedThemeToggler } from '@/components/ui/animated-theme-toggler'
 import { buttonVariants } from '@/components/ui/button'
+import { IconTooltip } from '@/components/icon-tooltip'
 
 /**
  * Light/dark toggle for every header. Controlled: ThemeProvider owns the
@@ -22,14 +23,16 @@ export function ThemeSwitch() {
   }, [resolvedTheme])
 
   return (
-    <AnimatedThemeToggler
-      theme={resolvedTheme}
-      onThemeChange={setTheme}
-      label={t('theme.toggle')}
-      className={cn(
-        buttonVariants({ variant: 'ghost', size: 'icon' }),
-        'scale-95 rounded-full [&_svg]:size-[1.2rem]'
-      )}
-    />
+    <IconTooltip label={t('theme.toggle')}>
+      <AnimatedThemeToggler
+        theme={resolvedTheme}
+        onThemeChange={setTheme}
+        label={t('theme.toggle')}
+        className={cn(
+          buttonVariants({ variant: 'ghost', size: 'icon' }),
+          'scale-95 rounded-full [&_svg]:size-[1.2rem]'
+        )}
+      />
+    </IconTooltip>
   )
 }

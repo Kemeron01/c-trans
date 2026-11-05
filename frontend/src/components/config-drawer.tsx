@@ -24,6 +24,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet'
+import { IconTooltip } from '@/components/icon-tooltip'
 import { useSidebar } from './ui/sidebar'
 
 export function ConfigDrawer() {
@@ -40,16 +41,18 @@ export function ConfigDrawer() {
 
   return (
     <Sheet>
-      <SheetTrigger asChild>
-        <Button
-          size='icon'
-          variant='ghost'
-          aria-label={t('config.open')}
-          className='rounded-full'
-        >
-          <Settings aria-hidden='true' />
-        </Button>
-      </SheetTrigger>
+      <IconTooltip label={t('config.open')}>
+        <SheetTrigger asChild>
+          <Button
+            size='icon'
+            variant='ghost'
+            aria-label={t('config.open')}
+            className='rounded-full'
+          >
+            <Settings aria-hidden='true' />
+          </Button>
+        </SheetTrigger>
+      </IconTooltip>
       <SheetContent className='flex flex-col'>
         <SheetHeader className='pb-0 text-start'>
           <SheetTitle>{t('config.title')}</SheetTitle>

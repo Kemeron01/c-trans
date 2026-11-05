@@ -17,11 +17,21 @@ import { useCartStore } from '@/stores/cart-store'
 import { formatUsd } from '@/lib/format'
 import { isStaff } from '@/lib/permissions'
 import { itemsDimensions } from '@/lib/pricing'
+import { cn } from '@/lib/utils'
 import { useLocalized } from '@/hooks/use-localized'
+import { useIsMobile } from '@/hooks/use-mobile'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerTrigger,
+} from '@/components/ui/drawer'
 import { EmptyState } from '@/components/empty-state'
+import { IconTooltip } from '@/components/icon-tooltip'
 import {
   DeliveryOptions,
   type DeliveryChoice,
@@ -34,6 +44,7 @@ export function Cart() {
   const { t } = useTranslation()
   const localized = useLocalized()
   const navigate = useNavigate()
+  const isMobile = useIsMobile()
   const queryClient = useQueryClient()
   const { warehouseId, lines, setQuantity, clear } = useCartStore()
   const products =
@@ -114,8 +125,56 @@ export function Cart() {
     !quote?.tariff || quote.below_minimum || quote.total_usd === null
   const addressMissing = choice.receive === 'courier' && !address.trim()
 
+  const summaryBody = (
+    <>
+      <QuoteSummary quote={quote} minWeight={minWeight} />
+      {!isClient ? (
+        <Button
+          onClick={() =>
+            navigate({ to: '/sign-in', search: { redirect: '/cart' } })
+          }
+        >
+          {t('checkout.signInToOrder')}
+        </Button>
+      ) : !profile?.full_name ? (
+        <Alert>
+          <AlertDescription>
+            <Link to='/account' className='underline underline-offset-4'>
+              {t('checkout.fillProfile')}
+            </Link>
+          </AlertDescription>
+        </Alert>
+      ) : !hasCard ? (
+        <Alert>
+          <AlertDescription>
+            {t('checkout.needCard')}{' '}
+            <Link
+              to='/account'
+              hash='cards'
+              className='underline underline-offset-4'
+            >
+              {t('account.addCard')}
+            </Link>
+          </AlertDescription>
+        </Alert>
+      ) : (
+        <>
+          <Button
+            disabled={blocked || addressMissing || order.isPending}
+            onClick={() => order.mutate()}
+          >
+            {t('checkout.placeOrder')}
+          </Button>
+          <p className='text-xs text-muted-foreground'>
+            {t('checkout.autoCharge')}
+          </p>
+        </>
+      )}
+    </>
+  )
+
   return (
-    <div className='grid gap-6'>
+    <div className={cn('grid gap-6', isMobile && 'pb-24')}>
       <h1 className='text-2xl font-bold tracking-tight'>
         {t('site.nav.cart')}
       </h1>
@@ -143,35 +202,43 @@ export function Cart() {
                     </span>
                   </div>
                   <div className='flex items-center rounded-md border'>
-                    <Button
-                      variant='ghost'
-                      size='icon'
-                      aria-label='−'
-                      onClick={() => setQuantity(p.id, quantity - 1)}
-                    >
-                      <Minus />
-                    </Button>
+                    <IconTooltip label={t('tip.decrease')}>
+                      <Button
+                        variant='ghost'
+                        size='icon'
+                        aria-label={t('tip.decrease')}
+                        onClick={() => setQuantity(p.id, quantity - 1)}
+                      >
+                        <Minus />
+                      </Button>
+                    </IconTooltip>
                     <span className='w-8 text-center tabular-nums'>
                       {quantity}
                     </span>
+                    <IconTooltip label={t('tip.increase')}>
+                      <Button
+                        variant='ghost'
+                        size='icon'
+                        aria-label={t('tip.increase')}
+                        disabled={
+                          quantity >= p.stock.quantity - p.stock.reserved
+                        }
+                        onClick={() => setQuantity(p.id, quantity + 1)}
+                      >
+                        <Plus />
+                      </Button>
+                    </IconTooltip>
+                  </div>
+                  <IconTooltip label={t('common.delete')}>
                     <Button
                       variant='ghost'
                       size='icon'
-                      aria-label='+'
-                      disabled={quantity >= p.stock.quantity - p.stock.reserved}
-                      onClick={() => setQuantity(p.id, quantity + 1)}
+                      aria-label={t('common.delete')}
+                      onClick={() => setQuantity(p.id, 0)}
                     >
-                      <Plus />
+                      <Trash2 />
                     </Button>
-                  </div>
-                  <Button
-                    variant='ghost'
-                    size='icon'
-                    aria-label={t('common.delete')}
-                    onClick={() => setQuantity(p.id, 0)}
-                  >
-                    <Trash2 />
-                  </Button>
+                  </IconTooltip>
                 </div>
               ))}
             </CardContent>
@@ -191,56 +258,39 @@ export function Cart() {
           </Card>
         </div>
 
-        <Card className='lg:sticky lg:top-24'>
-          <CardHeader>
-            <CardTitle>{t('checkout.summary')}</CardTitle>
-          </CardHeader>
-          <CardContent className='grid gap-4'>
-            <QuoteSummary quote={quote} minWeight={minWeight} />
-            {!isClient ? (
-              <Button
-                onClick={() =>
-                  navigate({ to: '/sign-in', search: { redirect: '/cart' } })
-                }
-              >
-                {t('checkout.signInToOrder')}
-              </Button>
-            ) : !profile?.full_name ? (
-              <Alert>
-                <AlertDescription>
-                  <Link to='/account' className='underline underline-offset-4'>
-                    {t('checkout.fillProfile')}
-                  </Link>
-                </AlertDescription>
-              </Alert>
-            ) : !hasCard ? (
-              <Alert>
-                <AlertDescription>
-                  {t('checkout.needCard')}{' '}
-                  <Link
-                    to='/account'
-                    hash='cards'
-                    className='underline underline-offset-4'
-                  >
-                    {t('account.addCard')}
-                  </Link>
-                </AlertDescription>
-              </Alert>
-            ) : (
-              <>
-                <Button
-                  disabled={blocked || addressMissing || order.isPending}
-                  onClick={() => order.mutate()}
-                >
-                  {t('checkout.placeOrder')}
-                </Button>
-                <p className='text-xs text-muted-foreground'>
-                  {t('checkout.autoCharge')}
-                </p>
-              </>
-            )}
-          </CardContent>
-        </Card>
+        {isMobile ? (
+          // Mobile: sticky "Total" bar, details and checkout in a bottom Drawer
+          <Drawer>
+            <div className='fixed inset-x-0 bottom-0 z-30 flex items-center justify-between gap-3 border-t bg-background/95 p-3 backdrop-blur'>
+              <div>
+                <div className='text-xs text-muted-foreground'>
+                  {t('cartBar.total')}
+                </div>
+                <div className='text-lg font-bold'>
+                  {quote?.total_usd != null ? formatUsd(quote.total_usd) : '—'}
+                </div>
+              </div>
+              <DrawerTrigger asChild>
+                <Button>{t('cartBar.open')}</Button>
+              </DrawerTrigger>
+            </div>
+            <DrawerContent>
+              <DrawerHeader>
+                <DrawerTitle>{t('checkout.summary')}</DrawerTitle>
+              </DrawerHeader>
+              <div className='grid gap-4 overflow-y-auto px-4 pb-6'>
+                {summaryBody}
+              </div>
+            </DrawerContent>
+          </Drawer>
+        ) : (
+          <Card className='lg:sticky lg:top-24'>
+            <CardHeader>
+              <CardTitle>{t('checkout.summary')}</CardTitle>
+            </CardHeader>
+            <CardContent className='grid gap-4'>{summaryBody}</CardContent>
+          </Card>
+        )}
       </div>
     </div>
   )

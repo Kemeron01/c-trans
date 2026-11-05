@@ -1,6 +1,7 @@
 import { delay, http, HttpResponse } from 'msw'
 import {
   canCancel,
+  isActive,
   isOnSide,
   LEAD_STATUSES,
   manualSteps,
@@ -58,7 +59,8 @@ export const orderHandlers = [
         only('shipment', (x) => x.shipment?.id)(o) &&
         only('origin_warehouse', (x) => x.origin_warehouse.id)(o) &&
         only('destination_warehouse', (x) => x.destination_warehouse.id)(o) &&
-        (q.get('is_lead') !== 'true' || isLead(o))
+        (q.get('is_lead') !== 'true' || isLead(o)) &&
+        (q.get('active') !== 'true' || isActive(o.status))
     )
     return paginate(request, visible, {
       search: (o) =>

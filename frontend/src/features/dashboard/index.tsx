@@ -24,6 +24,7 @@ import { ORDER_STATUSES } from '@/lib/order-flow'
 import { useCurrentUser } from '@/hooks/use-current-user'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
+import { Progress } from '@/components/ui/progress'
 import {
   Select,
   SelectContent,
@@ -247,15 +248,12 @@ function DashboardView({ data }: { data: DashboardStats }) {
                       className='grid grid-cols-[minmax(8rem,12rem)_1fr_auto] items-center gap-3 text-sm'
                     >
                       <span className='truncate'>{t(`orderStatus.${s}`)}</span>
-                      <span className='h-2 rounded-full bg-muted'>
-                        <span
-                          className='block h-2 rounded-full'
-                          style={{
-                            width: `${(n / max) * 100}%`,
-                            background: 'var(--chart-series)',
-                          }}
-                        />
-                      </span>
+                      <Progress
+                        value={(n / max) * 100}
+                        aria-label={t(`orderStatus.${s}`)}
+                        className='bg-muted'
+                        indicatorClassName='bg-(--chart-series)'
+                      />
                       <span className='w-8 text-end tabular-nums'>{n}</span>
                     </li>
                   )

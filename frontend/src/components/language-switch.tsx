@@ -9,21 +9,24 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { IconTooltip } from '@/components/icon-tooltip'
 
 export function LanguageSwitch() {
   const { t, i18n } = useTranslation()
 
   return (
     <DropdownMenu modal={false}>
-      <DropdownMenuTrigger asChild>
-        <Button variant='ghost' size='sm' className='gap-1.5 rounded-full'>
-          <Languages className='size-[1.1rem]' />
-          <span className='text-xs font-semibold uppercase'>
-            {i18n.language}
-          </span>
-          <span className='sr-only'>{t('language.label')}</span>
-        </Button>
-      </DropdownMenuTrigger>
+      <IconTooltip label={t('tip.language')}>
+        <DropdownMenuTrigger asChild>
+          <Button variant='ghost' size='sm' className='gap-1.5 rounded-full'>
+            <Languages className='size-[1.1rem]' />
+            <span className='text-xs font-semibold uppercase'>
+              {i18n.language}
+            </span>
+            <span className='sr-only'>{t('language.label')}</span>
+          </Button>
+        </DropdownMenuTrigger>
+      </IconTooltip>
       <DropdownMenuContent align='end'>
         {LANGUAGES.map((lng) => (
           <DropdownMenuItem key={lng} onClick={() => i18n.changeLanguage(lng)}>

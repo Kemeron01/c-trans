@@ -26,6 +26,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { DataTablePagination } from './pagination'
+import { RowContextMenu } from './row-actions'
 import { DataTableToolbar } from './toolbar'
 
 type DataTableProps<TData> = {
@@ -41,6 +42,8 @@ type DataTableProps<TData> = {
    * search and filters are done by the backend (see `useServerTable`).
    */
   server?: ServerTable
+  /** Extra quick filters in the toolbar (e.g. <ActiveToggle />). */
+  toolbarExtra?: React.ReactNode
 }
 
 /**
@@ -57,6 +60,7 @@ export function DataTable<TData>({
   filters,
   initialColumnFilters = [],
   server,
+  toolbarExtra,
 }: DataTableProps<TData>) {
   const { t } = useTranslation()
   const [localSorting, setSorting] = useState<SortingState>(() =>
@@ -108,12 +112,17 @@ export function DataTable<TData>({
         }),
   })
 
+  // Right-click menu: the same actions as the "⋯" column (see actionsColumn)
+  const getRowActions = columns.find((c) => c.meta?.rowActions)?.meta
+    ?.rowActions
+
   return (
     <div className='flex flex-1 flex-col gap-4'>
       <DataTableToolbar
         table={table}
         searchPlaceholder={searchPlaceholder}
         filters={filters}
+        extra={toolbarExtra}
       />
       <div className='overflow-hidden rounded-md border'>
         <Table>
@@ -150,24 +159,34 @@ export function DataTable<TData>({
                 </TableRow>
               ))
             ) : table.getRowModel().rows.length ? (
-              table.getRowModel().rows.map((row) => (
-                <TableRow key={row.id}>
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell
-                      key={cell.id}
-                      className={cn(
-                        cell.column.columnDef.meta?.className,
-                        cell.column.columnDef.meta?.tdClassName
-                      )}
-                    >
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext()
-                      )}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              ))
+              table.getRowModel().rows.map((row) => {
+                const tableRow = (
+                  <TableRow key={row.id}>
+                    {row.getVisibleCells().map((cell) => (
+                      <TableCell
+                        key={cell.id}
+                        className={cn(
+                          cell.column.columnDef.meta?.className,
+                          cell.column.columnDef.meta?.tdClassName
+                        )}
+                      >
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext()
+                        )}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                )
+                const actions = getRowActions?.(row.original)
+                return actions?.some((a) => !a.hidden) ? (
+                  <RowContextMenu key={row.id} actions={actions}>
+                    {tableRow}
+                  </RowContextMenu>
+                ) : (
+                  tableRow
+                )
+              })
             ) : (
               <TableRow>
                 <TableCell

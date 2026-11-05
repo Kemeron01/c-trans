@@ -10,6 +10,8 @@ type DataTableToolbarProps<TData> = {
   table: Table<TData>
   searchPlaceholder?: string
   searchKey?: string
+  /** Extra quick filters (e.g. a Toggle) next to the faceted filters. */
+  extra?: React.ReactNode
   filters?: {
     columnId: string
     title: string
@@ -26,6 +28,7 @@ export function DataTableToolbar<TData>({
   searchPlaceholder,
   searchKey,
   filters = [],
+  extra,
 }: DataTableToolbarProps<TData>) {
   const { t } = useTranslation()
   const placeholder = searchPlaceholder ?? t('dataTable.filter')
@@ -54,7 +57,8 @@ export function DataTableToolbar<TData>({
             className='h-8 w-37.5 lg:w-62.5'
           />
         )}
-        <div className='flex gap-x-2'>
+        <div className='flex flex-wrap gap-x-2'>
+          {extra}
           {filters.map((filter) => {
             const column = table.getColumn(filter.columnId)
             if (!column) return null

@@ -133,7 +133,7 @@ export function Landing() {
         )}
       </section>
 
-      <section className='grid gap-4'>
+      <section className='grid gap-4' id='how'>
         <AnimatedText className='text-2xl font-bold tracking-tight'>
           {t('landing.howTitle')}
         </AnimatedText>

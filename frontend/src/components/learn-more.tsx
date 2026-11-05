@@ -1,5 +1,6 @@
 import { type Root, type Content, type Trigger } from '@radix-ui/react-popover'
 import { CircleQuestionMark } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import {
@@ -7,6 +8,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover'
+import { IconTooltip } from '@/components/icon-tooltip'
 
 type LearnMoreProps = React.ComponentProps<typeof Root> & {
   contentProps?: React.ComponentProps<typeof Content>
@@ -19,18 +21,21 @@ export function LearnMore({
   triggerProps,
   ...props
 }: LearnMoreProps) {
+  const { t } = useTranslation()
   return (
     <Popover {...props}>
-      <PopoverTrigger
-        asChild
-        {...triggerProps}
-        className={cn('size-5 rounded-full', triggerProps?.className)}
-      >
-        <Button variant='outline' size='icon'>
-          <span className='sr-only'>Learn more</span>
-          <CircleQuestionMark className='size-4 [&>circle]:hidden' />
-        </Button>
-      </PopoverTrigger>
+      <IconTooltip label={t('tip.moreInfo')} side='top'>
+        <PopoverTrigger
+          asChild
+          {...triggerProps}
+          className={cn('size-5 rounded-full', triggerProps?.className)}
+        >
+          <Button variant='outline' size='icon'>
+            <span className='sr-only'>{t('tip.moreInfo')}</span>
+            <CircleQuestionMark className='size-4 [&>circle]:hidden' />
+          </Button>
+        </PopoverTrigger>
+      </IconTooltip>
       <PopoverContent
         side='top'
         align='start'

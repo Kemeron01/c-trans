@@ -1,7 +1,54 @@
 // Source dictionary: uz.ts and en.ts must have exactly the same keys
 // (enforced by the `Translation` type).
 export const ru = {
+  tip: {
+    toggleSidebar: 'Показать/скрыть меню',
+    increase: 'Добавить ещё',
+    decrease: 'Убавить',
+    moreInfo: 'Подробнее',
+    openMenu: 'Открыть меню',
+    profile: 'Профиль',
+    cart: 'Корзина',
+    notifications: 'Уведомления',
+    language: 'Язык',
+  },
+  hover: {
+    phone: 'Телефон',
+    code: 'Код клиента',
+    ordersCount: 'Заказов: {{count}}',
+    route: 'Маршрут',
+    dates: 'Даты',
+    departure: 'Отправление',
+    arrival: 'Прибытие',
+  },
+  prog: {
+    routeProgress: 'Пройдено точек маршрута',
+    routeOf: '{{passed}} из {{total}}',
+    stockOf: '{{available}} из {{total}}',
+  },
+  ordersFilter: {
+    all: 'Все',
+    active: 'Активные',
+    done: 'Завершённые',
+    label: 'Фильтр заказов',
+    emptyFiltered: 'Нет заказов в этой категории.',
+  },
+  historyCollapse: {
+    showAll: 'Показать всю историю ({{count}})',
+    showLess: 'Свернуть',
+  },
+  siteNav: {
+    help: 'Помощь',
+    allCountries: 'Все страны',
+    catalogHint: 'Товары со складов в выбранной стране',
+  },
+  cartBar: {
+    total: 'Итого',
+    open: 'Показать итог и оформить',
+  },
   common: {
+    open: 'Открыть',
+    search: 'Поиск...',
     notFoundHint: 'Запись не найдена или у вас нет к ней доступа.',
     delete: 'Удалить',
     deleted: 'Удалено.',
@@ -717,6 +764,7 @@ export const ru = {
     delivered: 'Доставлен',
   },
   dataTable: {
+    activeOnly: 'Только активные',
     filter: 'Фильтр...',
     reset: 'Сбросить',
     view: 'Вид',

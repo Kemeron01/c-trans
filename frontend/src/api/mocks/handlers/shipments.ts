@@ -32,7 +32,12 @@ export const shipmentHandlers = [
     if (error) return error
     return paginate(
       request,
-      shipments.filter((s) => visible(user, s)),
+      shipments.filter(
+        (s) =>
+          visible(user, s) &&
+          (new URL(request.url).searchParams.get('active') !== 'true' ||
+            s.status !== 'arrived')
+      ),
       {
         search: (s) => s.number,
         filters: { status: (s) => s.status, method: (s) => s.method },

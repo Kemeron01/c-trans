@@ -36,25 +36,47 @@ import {
 export function NavGroup({ title, items }: NavGroupProps) {
   const { state, isMobile } = useSidebar()
   const href = useLocation({ select: (location) => location.href })
+  const menu = (
+    <SidebarMenu>
+      {items.map((item) => {
+        const key = `${item.title}-${item.url}`
+
+        if (!item.items)
+          return <SidebarMenuLink key={key} item={item} href={href} />
+
+        if (state === 'collapsed' && !isMobile)
+          return (
+            <SidebarMenuCollapsedDropdown key={key} item={item} href={href} />
+          )
+
+        return <SidebarMenuCollapsible key={key} item={item} href={href} />
+      })}
+    </SidebarMenu>
+  )
+
+  // Icon-only sidebar has no group labels: its items are always shown
+  if (state === 'collapsed' && !isMobile) {
+    return (
+      <SidebarGroup>
+        <SidebarGroupLabel>{title}</SidebarGroupLabel>
+        {menu}
+      </SidebarGroup>
+    )
+  }
+
+  // Otherwise the group folds by its label
   return (
-    <SidebarGroup>
-      <SidebarGroupLabel>{title}</SidebarGroupLabel>
-      <SidebarMenu>
-        {items.map((item) => {
-          const key = `${item.title}-${item.url}`
-
-          if (!item.items)
-            return <SidebarMenuLink key={key} item={item} href={href} />
-
-          if (state === 'collapsed' && !isMobile)
-            return (
-              <SidebarMenuCollapsedDropdown key={key} item={item} href={href} />
-            )
-
-          return <SidebarMenuCollapsible key={key} item={item} href={href} />
-        })}
-      </SidebarMenu>
-    </SidebarGroup>
+    <Collapsible defaultOpen className='group/group'>
+      <SidebarGroup>
+        <CollapsibleTrigger asChild>
+          <SidebarGroupLabel className='cursor-pointer select-none hover:text-sidebar-foreground'>
+            {title}
+            <ChevronRight className='ms-auto size-4 transition-transform duration-200 group-data-[state=open]/group:rotate-90 rtl:rotate-180' />
+          </SidebarGroupLabel>
+        </CollapsibleTrigger>
+        <CollapsibleContent>{menu}</CollapsibleContent>
+      </SidebarGroup>
+    </Collapsible>
   )
 }
 

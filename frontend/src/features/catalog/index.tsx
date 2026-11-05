@@ -17,11 +17,12 @@ import { formatNumber, formatUsd } from '@/lib/format'
 import { useLocalized } from '@/hooks/use-localized'
 import { useWarehouseScope } from '@/hooks/use-warehouse-scope'
 import { Button } from '@/components/ui/button'
+import { Progress } from '@/components/ui/progress'
 import { ActiveBadge } from '@/components/active-badge'
 import {
   DataTable,
   DataTableColumnHeader,
-  RowActions,
+  actionsColumn,
   inSelected,
 } from '@/components/data-table'
 import { AppHeader } from '@/components/layout/app-header'
@@ -113,6 +114,16 @@ export function Catalog() {
             <div className='text-xs text-muted-foreground'>
               {t('catalog.stockDetails', { quantity, reserved })}
             </div>
+            <Progress
+              value={
+                quantity > 0 ? ((quantity - reserved) / quantity) * 100 : 0
+              }
+              aria-label={t('prog.stockOf', {
+                available: quantity - reserved,
+                total: quantity,
+              })}
+              className='mt-1 h-1.5 w-24'
+            />
           </div>
         )
       },
@@ -125,47 +136,38 @@ export function Catalog() {
       filterFn: inSelected,
       cell: ({ row }) => <ActiveBadge active={row.original.is_active} />,
     },
-    {
-      id: 'actions',
-      meta: { className: 'w-12' },
-      cell: ({ row }) => {
-        const product = row.original
-        const stock = (kind: StockMovementPayload['kind']) => () =>
-          setDialog({ type: 'stock', product, kind })
-        return (
-          <RowActions
-            actions={[
-              {
-                label: t('common.edit'),
-                icon: Pencil,
-                hidden: !canEdit,
-                onSelect: () => setDialog({ type: 'product', product }),
-              },
-              {
-                label: t('catalog.movement.receipt'),
-                icon: PackagePlus,
-                onSelect: stock('receipt'),
-              },
-              {
-                label: t('catalog.movement.write_off'),
-                icon: PackageMinus,
-                onSelect: stock('write_off'),
-              },
-              {
-                label: t('catalog.movement.adjustment'),
-                icon: SlidersHorizontal,
-                onSelect: stock('adjustment'),
-              },
-              {
-                label: t('catalog.history'),
-                icon: History,
-                onSelect: () => setDialog({ type: 'history', product }),
-              },
-            ]}
-          />
-        )
-      },
-    },
+    actionsColumn((product) => {
+      const stock = (kind: StockMovementPayload['kind']) => () =>
+        setDialog({ type: 'stock', product, kind })
+      return [
+        {
+          label: t('common.edit'),
+          icon: Pencil,
+          hidden: !canEdit,
+          onSelect: () => setDialog({ type: 'product', product }),
+        },
+        {
+          label: t('catalog.movement.receipt'),
+          icon: PackagePlus,
+          onSelect: stock('receipt'),
+        },
+        {
+          label: t('catalog.movement.write_off'),
+          icon: PackageMinus,
+          onSelect: stock('write_off'),
+        },
+        {
+          label: t('catalog.movement.adjustment'),
+          icon: SlidersHorizontal,
+          onSelect: stock('adjustment'),
+        },
+        {
+          label: t('catalog.history'),
+          icon: History,
+          onSelect: () => setDialog({ type: 'history', product }),
+        },
+      ]
+    }),
   ]
 
   return (

@@ -24,6 +24,11 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Textarea } from '@/components/ui/textarea'
 import { ConfirmDialog } from '@/components/confirm-dialog'
@@ -32,6 +37,8 @@ import { OrderProgress } from '@/components/order-progress'
 import { RatingStars } from '@/components/rating-stars'
 import { TrackingMap } from '@/components/tracking-map'
 import { OrderStatusBadge } from '../orders/order-status-badge'
+
+const HISTORY_PREVIEW = 3
 
 const route = getRouteApi('/_site/_client/orders/$orderId')
 
@@ -70,6 +77,22 @@ function OrderView({ order }: { order: Order }) {
   const { uzs } = useUzs()
   const queryClient = useQueryClient()
   const [cancelling, setCancelling] = useState(false)
+  const [historyOpen, setHistoryOpen] = useState(false)
+  // Newest first; the latest few are shown, the rest folds away
+  const history = order.history.slice().reverse()
+  const renderEntry = (h: Order['history'][number], i: number) => (
+    <li key={i} className='flex flex-wrap justify-between gap-2'>
+      <span>
+        <span className='font-medium'>{t(`orderStatus.${h.status}`)}</span>
+        {h.event && (
+          <span className='block text-xs text-muted-foreground'>
+            {t(`historyEvent.${h.event}`, { ref: h.ref ?? '' })}
+          </span>
+        )}
+      </span>
+      <span className='text-muted-foreground'>{formatDateTime(h.at)}</span>
+    </li>
+  )
   const tracking = useQuery({
     ...trackingQuery(order.id),
     enabled: !!order.shipment,
@@ -298,28 +321,27 @@ function OrderView({ order }: { order: Order }) {
           <CardTitle>{t('orders.history')}</CardTitle>
         </CardHeader>
         <CardContent>
-          <ol className='grid gap-3 text-sm'>
-            {order.history
-              .slice()
-              .reverse()
-              .map((h, i) => (
-                <li key={i} className='flex flex-wrap justify-between gap-2'>
-                  <span>
-                    <span className='font-medium'>
-                      {t(`orderStatus.${h.status}`)}
-                    </span>
-                    {h.event && (
-                      <span className='block text-xs text-muted-foreground'>
-                        {t(`historyEvent.${h.event}`, { ref: h.ref ?? '' })}
-                      </span>
-                    )}
-                  </span>
-                  <span className='text-muted-foreground'>
-                    {formatDateTime(h.at)}
-                  </span>
-                </li>
-              ))}
-          </ol>
+          <Collapsible open={historyOpen} onOpenChange={setHistoryOpen}>
+            <ol className='grid gap-3 text-sm'>
+              {history.slice(0, HISTORY_PREVIEW).map(renderEntry)}
+            </ol>
+            {history.length > HISTORY_PREVIEW && (
+              <>
+                <CollapsibleContent>
+                  <ol className='mt-3 grid gap-3 text-sm'>
+                    {history.slice(HISTORY_PREVIEW).map(renderEntry)}
+                  </ol>
+                </CollapsibleContent>
+                <CollapsibleTrigger asChild>
+                  <Button variant='ghost' size='sm' className='mt-2'>
+                    {historyOpen
+                      ? t('historyCollapse.showLess')
+                      : t('historyCollapse.showAll', { count: history.length })}
+                  </Button>
+                </CollapsibleTrigger>
+              </>
+            )}
+          </Collapsible>
         </CardContent>
       </Card>
 

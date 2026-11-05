@@ -33,6 +33,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { ConfirmDialog } from '@/components/confirm-dialog'
 import { FormDialog } from '@/components/form-dialog'
 import { TextField } from '@/components/form-fields'
+import { IconTooltip } from '@/components/icon-tooltip'
 
 const route = getRouteApi('/_site/_client/account')
 
@@ -214,24 +215,27 @@ function CardsCard() {
                 </Button>
               )}
               {card.verified && !card.is_default && (
+                <IconTooltip label={t('account.makeDefault')}>
+                  <Button
+                    size='icon'
+                    variant='ghost'
+                    aria-label={t('account.makeDefault')}
+                    onClick={() => setDefault.mutate(card.id)}
+                  >
+                    <Star />
+                  </Button>
+                </IconTooltip>
+              )}
+              <IconTooltip label={t('common.delete')}>
                 <Button
                   size='icon'
                   variant='ghost'
-                  aria-label={t('account.makeDefault')}
-                  title={t('account.makeDefault')}
-                  onClick={() => setDefault.mutate(card.id)}
+                  aria-label={t('common.delete')}
+                  onClick={() => setRemoving(card)}
                 >
-                  <Star />
+                  <Trash2 />
                 </Button>
-              )}
-              <Button
-                size='icon'
-                variant='ghost'
-                aria-label={t('common.delete')}
-                onClick={() => setRemoving(card)}
-              >
-                <Trash2 />
-              </Button>
+              </IconTooltip>
             </div>
           </div>
         ))}

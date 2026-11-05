@@ -8,6 +8,7 @@ import { type Product } from '@/api/types'
 import { useCartStore } from '@/stores/cart-store'
 import { formatUsd } from '@/lib/format'
 import { useLocalized } from '@/hooks/use-localized'
+import { useSearchParam } from '@/hooks/use-search-param'
 import { useUzs } from '@/hooks/use-uzs'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardFooter } from '@/components/ui/card'
@@ -15,6 +16,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { ConfirmDialog } from '@/components/confirm-dialog'
 import { EmptyState } from '@/components/empty-state'
+import { IconTooltip } from '@/components/icon-tooltip'
 
 /** Products of foreign warehouses (scenario 2). Browsing needs no sign-in. */
 export function ClientCatalog() {
@@ -24,8 +26,8 @@ export function ClientCatalog() {
     (w) => w.kind === 'foreign'
   )
   const cartWarehouse = useCartStore((s) => s.warehouseId)
-  const [picked, setPicked] = useState<number | null>(null)
-  const warehouseId = picked ?? cartWarehouse ?? foreign[0]?.id ?? null
+  const [picked, setPicked] = useSearchParam<number>('warehouse', 0)
+  const warehouseId = picked || (cartWarehouse ?? foreign[0]?.id ?? null)
   const { data, isLoading } = useQuery({
     ...publicProductsQuery(warehouseId ?? 0),
     enabled: !!warehouseId,
@@ -151,24 +153,28 @@ function ProductCard({
       <CardFooter className='mt-auto p-4 pt-0'>
         {line ? (
           <div className='flex w-full items-center justify-between rounded-md border'>
-            <Button
-              variant='ghost'
-              size='icon'
-              aria-label='−'
-              onClick={() => setQuantity(p.id, line.quantity - 1)}
-            >
-              <Minus />
-            </Button>
+            <IconTooltip label={t('tip.decrease')}>
+              <Button
+                variant='ghost'
+                size='icon'
+                aria-label={t('tip.decrease')}
+                onClick={() => setQuantity(p.id, line.quantity - 1)}
+              >
+                <Minus />
+              </Button>
+            </IconTooltip>
             <span className='tabular-nums'>{line.quantity}</span>
-            <Button
-              variant='ghost'
-              size='icon'
-              aria-label='+'
-              disabled={line.quantity >= available}
-              onClick={() => setQuantity(p.id, line.quantity + 1)}
-            >
-              <Plus />
-            </Button>
+            <IconTooltip label={t('tip.increase')}>
+              <Button
+                variant='ghost'
+                size='icon'
+                aria-label={t('tip.increase')}
+                disabled={line.quantity >= available}
+                onClick={() => setQuantity(p.id, line.quantity + 1)}
+              >
+                <Plus />
+              </Button>
+            </IconTooltip>
           </div>
         ) : (
           <Button

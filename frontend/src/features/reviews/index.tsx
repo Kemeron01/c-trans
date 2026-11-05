@@ -6,6 +6,7 @@ import { reviewsQuery } from '@/api/analytics'
 import { type Review } from '@/api/types'
 import { formatDateTime } from '@/lib/format'
 import { DataTable, inSelected } from '@/components/data-table'
+import { ClientHoverCard } from '@/components/hover-cards'
 import { AppHeader } from '@/components/layout/app-header'
 import { Main } from '@/components/layout/main'
 import { PageHeading } from '@/components/layout/page-heading'
@@ -32,8 +33,12 @@ export function Reviews() {
             {row.original.order_number}
           </Link>
           <div className='text-xs text-muted-foreground'>
-            {row.original.client.full_name} ·{' '}
-            {formatDateTime(row.original.created_at)}
+            <ClientHoverCard client={row.original.client}>
+              <span className='cursor-default underline decoration-dotted underline-offset-4'>
+                {row.original.client.full_name}
+              </span>
+            </ClientHoverCard>{' '}
+            · {formatDateTime(row.original.created_at)}
           </div>
         </div>
       ),

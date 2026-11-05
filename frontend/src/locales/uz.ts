@@ -1,7 +1,54 @@
 import { type Translation } from './types'
 
 export const uz: Translation = {
+  tip: {
+    toggleSidebar: "Menyuni ko'rsatish/yashirish",
+    increase: "Yana qo'shish",
+    decrease: 'Kamaytirish',
+    moreInfo: 'Batafsil',
+    openMenu: 'Menyuni ochish',
+    profile: 'Profil',
+    cart: 'Savat',
+    notifications: 'Bildirishnomalar',
+    language: 'Til',
+  },
+  hover: {
+    phone: 'Telefon',
+    code: 'Mijoz kodi',
+    ordersCount: 'Buyurtmalar: {{count}}',
+    route: 'Marshrut',
+    dates: 'Sanalar',
+    departure: "Jo'natish",
+    arrival: 'Yetib kelish',
+  },
+  prog: {
+    routeProgress: "Marshrut nuqtalari o'tildi",
+    routeOf: '{{passed}} / {{total}}',
+    stockOf: '{{available}} / {{total}}',
+  },
+  ordersFilter: {
+    all: 'Hammasi',
+    active: 'Faol',
+    done: 'Yakunlangan',
+    label: 'Buyurtmalar filtri',
+    emptyFiltered: "Bu toifada buyurtmalar yo'q.",
+  },
+  historyCollapse: {
+    showAll: "Butun tarixni ko'rsatish ({{count}})",
+    showLess: "Yig'ish",
+  },
+  siteNav: {
+    help: 'Yordam',
+    allCountries: 'Barcha mamlakatlar',
+    catalogHint: 'Tanlangan mamlakat omborlaridagi tovarlar',
+  },
+  cartBar: {
+    total: 'Jami',
+    open: 'Jami va rasmiylashtirish',
+  },
   common: {
+    open: 'Ochish',
+    search: 'Qidirish...',
     notFoundHint: "Yozuv topilmadi yoki unga kirish huquqingiz yo'q.",
     delete: "O'chirish",
     deleted: "O'chirildi.",
@@ -723,6 +770,7 @@ export const uz: Translation = {
     delivered: 'Yetkazildi',
   },
   dataTable: {
+    activeOnly: 'Faqat faollar',
     filter: 'Filtr...',
     reset: 'Tozalash',
     view: "Ko'rinish",

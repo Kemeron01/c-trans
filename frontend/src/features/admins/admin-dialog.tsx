@@ -17,8 +17,8 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form'
+import { Combobox } from '@/components/combobox'
 import { FormDialog } from '@/components/form-dialog'
-import { SelectDropdown } from '@/components/select-dropdown'
 import { CredentialsFields, ProfileFields } from './account-fields'
 import { credentialsShape, profileShape } from './account-schema'
 
@@ -96,9 +96,9 @@ export function AdminDialog({ admin, onClose }: AdminDialogProps) {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>{t('staff.warehouse')}</FormLabel>
-                <SelectDropdown
-                  isControlled
-                  defaultValue={field.value}
+                <Combobox
+                  inForm
+                  value={field.value}
                   onValueChange={field.onChange}
                   isPending={warehouses.isLoading}
                   className='w-full'

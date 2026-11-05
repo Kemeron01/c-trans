@@ -21,6 +21,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { ConfirmDialog } from '@/components/confirm-dialog'
 import { EmptyState } from '@/components/empty-state'
+import { ClientHoverCard, ShipmentHoverCard } from '@/components/hover-cards'
 import { AppHeader } from '@/components/layout/app-header'
 import { Main } from '@/components/layout/main'
 import { CancelDialog, WeighDialog } from './order-dialogs'
@@ -130,8 +131,12 @@ function OrderView({ order }: { order: Order }) {
             <CardTitle>{t('orders.client')}</CardTitle>
           </CardHeader>
           <CardContent className='grid gap-1 text-sm'>
-            <div className='font-medium'>{order.client.full_name}</div>
-            <div className='font-mono'>{order.client.client_code}</div>
+            <ClientHoverCard client={order.client}>
+              <div className='w-fit cursor-default'>
+                <div className='font-medium'>{order.client.full_name}</div>
+                <div className='font-mono'>{order.client.client_code}</div>
+              </div>
+            </ClientHoverCard>
             <div>{order.client.phone}</div>
             {order.delivery_address && (
               <div className='text-muted-foreground'>
@@ -154,13 +159,15 @@ function OrderView({ order }: { order: Order }) {
               {t(`receiveMethod.${order.receive_method}`)}
             </div>
             {order.shipment && (
-              <Link
-                to='/admin/shipments/$shipmentId'
-                params={{ shipmentId: String(order.shipment.id) }}
-                className='underline underline-offset-4'
-              >
-                {t('orders.shipment')}: {order.shipment.number}
-              </Link>
+              <ShipmentHoverCard shipmentId={order.shipment.id}>
+                <Link
+                  to='/admin/shipments/$shipmentId'
+                  params={{ shipmentId: String(order.shipment.id) }}
+                  className='w-fit underline underline-offset-4'
+                >
+                  {t('orders.shipment')}: {order.shipment.number}
+                </Link>
+              </ShipmentHoverCard>
             )}
           </CardContent>
         </Card>

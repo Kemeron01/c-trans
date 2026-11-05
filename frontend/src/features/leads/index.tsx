@@ -3,9 +3,9 @@ import { z } from 'zod'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation, useQuery } from '@tanstack/react-query'
-import { Link } from '@tanstack/react-router'
+import { Link, useNavigate } from '@tanstack/react-router'
 import { type ColumnDef } from '@tanstack/react-table'
-import { Check, PhoneCall, PhoneOff, X } from 'lucide-react'
+import { Check, ExternalLink, PhoneCall, PhoneOff, X } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 import { ordersApi, ordersQuery, type LeadPayload } from '@/api/orders'
@@ -33,6 +33,7 @@ import {
 import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
 import { DataTable, inSelected } from '@/components/data-table'
+import { ClientHoverCard } from '@/components/hover-cards'
 import { AppHeader } from '@/components/layout/app-header'
 import { Main } from '@/components/layout/main'
 import { PageHeading } from '@/components/layout/page-heading'
@@ -50,6 +51,7 @@ export function Leads() {
     initialFilters: [{ id: 'status', value: OPEN }],
   })
   const { data, isLoading } = useQuery(ordersQuery(params))
+  const navigate = useNavigate()
   const [selected, setSelected] = useState<Order | null>(null)
 
   const columns: ColumnDef<Order>[] = [
@@ -84,13 +86,17 @@ export function Leads() {
       header: t('orders.client'),
       cell: ({ row }) => (
         <div className='text-sm'>
-          <div>{row.original.client.full_name}</div>
-          <div className='text-muted-foreground'>
-            {row.original.client.phone}
-          </div>
-          <div className='font-mono text-xs text-muted-foreground'>
-            {row.original.client.client_code}
-          </div>
+          <ClientHoverCard client={row.original.client}>
+            <div className='w-fit cursor-default'>
+              <div>{row.original.client.full_name}</div>
+              <div className='text-muted-foreground'>
+                {row.original.client.phone}
+              </div>
+              <div className='font-mono text-xs text-muted-foreground'>
+                {row.original.client.client_code}
+              </div>
+            </div>
+          </ClientHoverCard>
         </div>
       ),
     },
@@ -143,6 +149,26 @@ export function Leads() {
     },
     {
       id: 'actions',
+      // Right-click menu of the row
+      meta: {
+        rowActions: (o: Order) => [
+          {
+            label: t('leads.process'),
+            icon: Check,
+            hidden: !OPEN.includes(o.status),
+            onSelect: () => setSelected(o),
+          },
+          {
+            label: t('common.open'),
+            icon: ExternalLink,
+            onSelect: () =>
+              navigate({
+                to: '/admin/orders/$orderId',
+                params: { orderId: String(o.id) },
+              }),
+          },
+        ],
+      },
       cell: ({ row }) =>
         OPEN.includes(row.original.status) && (
           <Button

@@ -4,13 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { warehousesQuery } from '@/api/reference'
 import { type WarehouseKind } from '@/api/types'
 import { useCurrentUser } from '@/hooks/use-current-user'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
+import { Combobox } from '@/components/combobox'
 
 /**
  * Warehouse a warehouse-scoped page works with. Admins and workers: their
@@ -31,21 +25,14 @@ export function useWarehouseScope(kind: WarehouseKind) {
     : (user.warehouse?.id ?? null)
 
   const picker = isSuper ? (
-    <Select
-      value={warehouseId ? String(warehouseId) : ''}
+    <Combobox
+      value={warehouseId ? String(warehouseId) : undefined}
       onValueChange={(v) => setPicked(Number(v))}
-    >
-      <SelectTrigger className='w-56' aria-label={t('staff.warehouse')}>
-        <SelectValue placeholder={t('staff.warehouse')} />
-      </SelectTrigger>
-      <SelectContent>
-        {options.map((w) => (
-          <SelectItem key={w.id} value={String(w.id)}>
-            {w.name}
-          </SelectItem>
-        ))}
-      </SelectContent>
-    </Select>
+      aria-label={t('staff.warehouse')}
+      placeholder={t('staff.warehouse')}
+      className='w-56'
+      items={options.map((w) => ({ value: String(w.id), label: w.name }))}
+    />
   ) : null
 
   return { warehouseId, picker, canEdit: user.role !== 'worker' }
