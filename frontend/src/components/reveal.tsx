@@ -46,7 +46,9 @@ export function AnimatedText({
   const Tag = as
   if (reduced) return <Tag className={className}>{children}</Tag>
   return (
+    // key: a new text (language change) must replay its once-only animation
     <TextAnimate
+      key={children}
       as={as}
       by='word'
       animation='blurInUp'

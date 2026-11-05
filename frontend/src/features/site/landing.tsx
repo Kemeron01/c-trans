@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { lazy, Suspense, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
 import { MapPinned, PackageCheck, Scale, Send, ShoppingBag } from 'lucide-react'
@@ -13,9 +13,13 @@ import { InteractiveGridPattern } from '@/components/ui/interactive-grid-pattern
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { DeliveryCalculator } from '@/components/delivery-calculator'
 import { AnimatedText, Reveal } from '@/components/reveal'
-import { DeliveryGlobe } from './delivery-globe'
 import { LandingFaq } from './landing-faq'
 import { LandingStats } from './landing-stats'
+
+// The globe pulls in cobe + WebGL code: load it only for the landing page
+const DeliveryGlobe = lazy(() =>
+  import('./delivery-globe').then((m) => ({ default: m.DeliveryGlobe }))
+)
 
 export function Landing() {
   const { t } = useTranslation()
@@ -49,7 +53,7 @@ export function Landing() {
           squares={[40, 24]}
           aria-hidden
           className='-z-10 [mask-image:radial-gradient(ellipse_at_center,black_30%,transparent_72%)] stroke-foreground/10 dark:stroke-white/10'
-          squaresClassName='stroke-foreground/10 dark:stroke-white/10 hover:fill-primary/15'
+          squaresClassName='stroke-foreground/10 dark:stroke-white/10'
         />
         <div className='grid content-center justify-items-start gap-5 text-start'>
           <div className='flex flex-wrap gap-2'>
@@ -86,7 +90,9 @@ export function Landing() {
           </div>
         </div>
         <div className='mx-auto w-full max-w-64 sm:max-w-sm lg:max-w-none'>
-          <DeliveryGlobe />
+          <Suspense fallback={<div className='aspect-square w-full' />}>
+            <DeliveryGlobe />
+          </Suspense>
         </div>
       </section>
 

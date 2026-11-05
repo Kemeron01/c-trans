@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { publicWarehousesQuery } from '@/api/account'
 import { cssColorToRgb } from '@/lib/css-color'
 import { Globe } from '@/components/ui/globe'
+import { buildGlobeData } from './globe-data'
 
 type Rgb = [number, number, number]
 type Palette = {
@@ -13,18 +14,28 @@ type Palette = {
   accent: Rgb
 }
 
-/** Globe colors from the theme tokens; recomputed when `.dark` changes. */
+const DARK_BASE: Rgb = [0.25, 0.27, 0.32]
+const DARK_GLOW: Rgb = [0.1, 0.12, 0.2]
+const LIGHT_BASE: Rgb = [1, 1, 1]
+
+/** Globe colors from the theme tokens; recomputed (once) when `.dark` changes. */
 function useGlobePalette(): Palette | null {
   const [palette, setPalette] = useState<Palette | null>(null)
   useEffect(() => {
     const root = document.documentElement
-    const read = () =>
-      setPalette({
-        dark: root.classList.contains('dark'),
-        base: cssColorToRgb('var(--background)'),
-        glow: cssColorToRgb('var(--muted)'),
-        accent: cssColorToRgb('var(--primary)'),
+    const read = () => {
+      const dark = root.classList.contains('dark')
+      setPalette((prev) => {
+        // The observer fires several times per theme switch: keep identity
+        if (prev && prev.dark === dark) return prev
+        return {
+          dark,
+          base: dark ? DARK_BASE : LIGHT_BASE,
+          glow: dark ? DARK_GLOW : cssColorToRgb('var(--muted)'),
+          accent: cssColorToRgb('var(--brand)'),
+        }
       })
+    }
     read()
     const observer = new MutationObserver(read)
     observer.observe(root, { attributes: true, attributeFilter: ['class'] })
@@ -42,33 +53,10 @@ export function DeliveryGlobe({ className }: { className?: string }) {
   const { t } = useTranslation()
   const warehouses = useQuery(publicWarehousesQuery()).data
   const palette = useGlobePalette()
-
-  const { markers, arcs, focusLongitude } = useMemo(() => {
-    const located = (warehouses ?? []).filter(
-      (w) => w.latitude !== null && w.longitude !== null
-    )
-    const at = (w: (typeof located)[number]): [number, number] => [
-      w.latitude as number,
-      w.longitude as number,
-    ]
-    const foreign = located.filter((w) => w.kind === 'foreign')
-    const local = located.filter((w) => w.kind === 'local')
-    return {
-      markers: located.map((w) => ({
-        id: `w${w.id}`,
-        location: at(w),
-        size: w.kind === 'local' ? 0.09 : 0.06,
-      })),
-      arcs: foreign.flatMap((f) =>
-        local.map((l) => ({
-          id: `a${f.id}-${l.id}`,
-          from: at(f),
-          to: at(l),
-        }))
-      ),
-      focusLongitude: local[0]?.longitude ?? 60,
-    }
-  }, [warehouses])
+  const { markers, arcs, focusLongitude } = useMemo(
+    () => buildGlobeData(warehouses ?? []),
+    [warehouses]
+  )
 
   if (!palette) return null
   return (
@@ -78,8 +66,8 @@ export function DeliveryGlobe({ className }: { className?: string }) {
       markers={markers}
       arcs={arcs}
       dark={palette.dark}
-      baseColor={palette.dark ? [0.25, 0.27, 0.32] : [1, 1, 1]}
-      glowColor={palette.dark ? [0.1, 0.12, 0.2] : palette.glow}
+      baseColor={palette.base}
+      glowColor={palette.glow}
       markerColor={palette.accent}
       arcColor={palette.accent}
       focusLongitude={focusLongitude}

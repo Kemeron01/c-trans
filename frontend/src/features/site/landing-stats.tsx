@@ -25,7 +25,7 @@ function Gauge({ value, label }: { value: number; label: string }) {
       <AnimatedCircularProgressBar
         value={inView || reduced ? value : 0}
         instant={!!reduced}
-        gaugePrimaryColor='var(--primary)'
+        gaugePrimaryColor='var(--brand)'
         gaugeSecondaryColor='var(--border)'
         className='size-24 text-lg sm:size-32 sm:text-2xl'
       />

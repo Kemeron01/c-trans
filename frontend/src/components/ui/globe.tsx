@@ -5,91 +5,130 @@ import { cn } from '@/lib/utils'
 
 type Rgb = [number, number, number]
 
-type GlobeProps = {
-  className?: string
+export type GlobeAppearance = {
   markers: Marker[]
   arcs: Arc[]
   /** Dark globe style (dark theme). */
-  dark?: boolean
+  dark: boolean
   baseColor: Rgb
   glowColor: Rgb
   markerColor: Rgb
   arcColor: Rgb
+}
+
+type GlobeProps = GlobeAppearance & {
+  className?: string
   /** Longitude (degrees) turned to the viewer at first. */
   focusLongitude?: number
   /** Accessible description of the picture. */
   label?: string
 }
 
-const AUTO_ROTATE_SPEED = 0.004 // rad per frame
+const AUTO_ROTATE_SPEED = 0.004 // rad per 60 fps frame
+const FRAME_MS = 1000 / 30 // slow rotation does not need more than 30 fps
 const THETA = 0.28
 
-// cobe v2 has no onRender: the canvas is redrawn with globe.update() from our
-// own requestAnimationFrame loop. Dragging (mouse and touch) turns the globe;
-// auto-rotation is off with prefers-reduced-motion.
+const style = (a: GlobeAppearance) => ({
+  dark: a.dark ? 1 : 0,
+  diffuse: a.dark ? 1.2 : 0.4,
+  mapBrightness: a.dark ? 6 : 1.2,
+  baseColor: a.baseColor,
+  glowColor: a.glowColor,
+  markerColor: a.markerColor,
+  arcColor: a.arcColor,
+  // Without `id` cobe adds no DOM anchors (CSS anchor labels) for markers and
+  // arcs, which it would otherwise move — and restyle — on every frame
+  markers: a.markers.map((m) => ({ ...m, id: undefined })),
+  arcs: a.arcs.map((arc) => ({ ...arc, id: undefined })),
+})
+
+/**
+ * cobe v2 has no onRender: the globe is redrawn with globe.update() from our
+ * own requestAnimationFrame loop. One WebGL context per mount; appearance
+ * changes (data, colors, theme) go through update(), never re-creation.
+ * The loop runs only while the globe is on screen, the tab is visible and
+ * motion is allowed; dragging (mouse and touch) turns it.
+ */
 export function Globe({
   className,
-  markers,
-  arcs,
-  dark = false,
-  baseColor,
-  glowColor,
-  markerColor,
-  arcColor,
   focusLongitude = 0,
   label,
+  ...appearance
 }: GlobeProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const reduced = useReducedMotion()
-  // Rotation the user added by dragging, kept across effect re-runs
-  const dragPhi = useRef(0)
-  const phiRef = useRef(-(focusLongitude * Math.PI) / 180)
-  const dragStart = useRef<number | null>(null)
+  const latest = useRef(appearance)
+  latest.current = appearance
+  const reducedRef = useRef(!!reduced)
+  reducedRef.current = !!reduced
 
+  const globeRef = useRef<ReturnType<typeof createGlobe> | null>(null)
+  const phi = useRef(-(focusLongitude * Math.PI) / 180)
+  const dragging = useRef(false)
+  const lastX = useRef(0)
+  const ensureLoop = useRef<() => void>(() => {})
+
+  // Created once per mount
   useEffect(() => {
     const canvas = canvasRef.current
     if (!canvas) return
     const dpr = Math.min(window.devicePixelRatio || 1, 2)
-    const size = () => Math.max(canvas.offsetWidth, 1) * dpr
+    // Size in CSS pixels, from the ResizeObserver (never read per frame)
+    let size = Math.max(canvas.offsetWidth, 1)
+    let onScreen = true
+    let frame = 0
 
     const globe = createGlobe(canvas, {
-      width: size(),
-      height: size(),
+      width: size,
+      height: size,
       devicePixelRatio: dpr,
-      phi: phiRef.current + dragPhi.current,
+      phi: phi.current,
       theta: THETA,
-      dark: dark ? 1 : 0,
-      diffuse: dark ? 1.2 : 0.4,
       mapSamples: 16000,
-      mapBrightness: dark ? 6 : 1.2,
-      baseColor,
-      markerColor,
-      glowColor,
-      markers,
-      arcs,
-      arcColor,
+      opacity: 1,
       arcWidth: 0.6,
       arcHeight: 0.35,
+      ...style(latest.current),
     })
+    globeRef.current = globe
 
-    const resize = new ResizeObserver(() =>
-      globe.update({ width: size(), height: size() })
-    )
-    resize.observe(canvas)
-
-    let frame = 0
-    const tick = () => {
-      if (!reduced && dragStart.current === null) {
-        phiRef.current += AUTO_ROTATE_SPEED
+    const shouldRun = () =>
+      onScreen && !document.hidden && (!reducedRef.current || dragging.current)
+    let last = 0
+    const tick = (now: number) => {
+      frame = 0
+      if (!shouldRun()) {
+        last = 0
+        return
       }
-      globe.update({
-        phi: phiRef.current + dragPhi.current,
-        width: size(),
-        height: size(),
-      })
       frame = requestAnimationFrame(tick)
+      const dt = now - last
+      if (last && dt < FRAME_MS - 2) return
+      if (!dragging.current && last) {
+        phi.current += AUTO_ROTATE_SPEED * Math.min(dt / (1000 / 60), 4)
+      }
+      last = now
+      globe.update({ phi: phi.current })
     }
-    frame = requestAnimationFrame(tick)
+    const start = () => {
+      if (!frame && shouldRun()) frame = requestAnimationFrame(tick)
+    }
+    ensureLoop.current = start
+
+    const resize = new ResizeObserver(([entry]) => {
+      size = Math.max(Math.round(entry.contentRect.width), 1)
+      globe.update({ width: size, height: size })
+    })
+    resize.observe(canvas)
+    const visibility = new IntersectionObserver(([entry]) => {
+      onScreen = entry.isIntersecting
+      if (onScreen) start()
+    })
+    visibility.observe(canvas)
+    const onVisibility = () => start()
+    document.addEventListener('visibilitychange', onVisibility)
+
+    start()
     const fadeIn = requestAnimationFrame(() => {
       canvas.style.opacity = '1'
     })
@@ -98,18 +137,24 @@ export function Globe({
       cancelAnimationFrame(frame)
       cancelAnimationFrame(fadeIn)
       resize.disconnect()
+      visibility.disconnect()
+      document.removeEventListener('visibilitychange', onVisibility)
+      globeRef.current = null
       globe.destroy()
     }
-  }, [
-    markers,
-    arcs,
-    dark,
-    baseColor,
-    glowColor,
-    markerColor,
-    arcColor,
-    reduced,
-  ])
+  }, [])
+
+  // Data / colors / theme: update the live globe
+  const { markers, arcs, dark, baseColor, glowColor, markerColor, arcColor } =
+    appearance
+  useEffect(() => {
+    globeRef.current?.update(style(latest.current))
+  }, [markers, arcs, dark, baseColor, glowColor, markerColor, arcColor])
+
+  // Motion preference changed: start (or let the loop stop by itself)
+  useEffect(() => {
+    ensureLoop.current()
+  }, [reduced])
 
   return (
     <div className={cn('relative mx-auto aspect-square w-full', className)}>
@@ -119,16 +164,18 @@ export function Globe({
         aria-label={label}
         className='size-full cursor-grab touch-pan-y opacity-0 transition-opacity duration-500 active:cursor-grabbing'
         onPointerDown={(e) => {
-          dragStart.current = e.clientX
+          dragging.current = true
+          lastX.current = e.clientX
           e.currentTarget.setPointerCapture(e.pointerId)
+          ensureLoop.current()
         }}
         onPointerMove={(e) => {
-          if (dragStart.current === null) return
-          dragPhi.current += (e.clientX - dragStart.current) / 200
-          dragStart.current = e.clientX
+          if (!dragging.current) return
+          phi.current += (e.clientX - lastX.current) / 200
+          lastX.current = e.clientX
         }}
-        onPointerUp={() => (dragStart.current = null)}
-        onPointerCancel={() => (dragStart.current = null)}
+        onPointerUp={() => (dragging.current = false)}
+        onPointerCancel={() => (dragging.current = false)}
       />
     </div>
   )
