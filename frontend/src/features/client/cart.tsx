@@ -110,7 +110,8 @@ export function Cart() {
     )
   }
 
-  const blocked = !quote?.tariff || quote.below_minimum
+  const blocked =
+    !quote?.tariff || quote.below_minimum || quote.total_usd === null
   const addressMissing = choice.receive === 'courier' && !address.trim()
 
   return (

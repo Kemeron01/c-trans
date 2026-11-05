@@ -15,6 +15,7 @@ import {
 } from '@tanstack/react-table'
 import { useTranslation } from 'react-i18next'
 import { cn } from '@/lib/utils'
+import { type ServerTable } from '@/hooks/use-server-table'
 import { Skeleton } from '@/components/ui/skeleton'
 import {
   Table,
@@ -35,11 +36,18 @@ type DataTableProps<TData> = {
   filters?: React.ComponentProps<typeof DataTableToolbar>['filters']
   /** Filters applied on first render, e.g. only open leads. */
   initialColumnFilters?: ColumnFiltersState
+  /**
+   * Server mode: `data` is only the current page, and paging, sorting,
+   * search and filters are done by the backend (see `useServerTable`).
+   */
+  server?: ServerTable
 }
 
 /**
- * Client-side table (sorting, filtering, pagination in the browser) for
- * small lists. Large lists (orders) will need server-side pagination.
+ * Table with two modes. Client mode (default): sorting, filtering and
+ * pagination in the browser, for small reference lists; newest first when
+ * the rows have a `created_at` column. Server mode (`server` prop): the
+ * backend pages, sorts and filters; for lists that grow (orders, shipments).
  */
 export function DataTable<TData>({
   columns,
@@ -48,29 +56,56 @@ export function DataTable<TData>({
   searchPlaceholder,
   filters,
   initialColumnFilters = [],
+  server,
 }: DataTableProps<TData>) {
   const { t } = useTranslation()
-  const [sorting, setSorting] = useState<SortingState>([])
+  const [localSorting, setSorting] = useState<SortingState>(() =>
+    columns.some(
+      (c) =>
+        c.id === 'created_at' ||
+        ('accessorKey' in c && c.accessorKey === 'created_at')
+    )
+      ? [{ id: 'created_at', desc: true }]
+      : []
+  )
   const [columnFilters, setColumnFilters] =
     useState<ColumnFiltersState>(initialColumnFilters)
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
-  const [globalFilter, setGlobalFilter] = useState('')
+  const [localGlobalFilter, setGlobalFilter] = useState('')
+  const sorting = server?.sorting ?? localSorting
+  const globalFilter = server?.globalFilter ?? localGlobalFilter
 
   // eslint-disable-next-line react-hooks/incompatible-library
-  const table = useReactTable({
+  const table = useReactTable<TData>({
     data: data ?? [],
     columns,
-    state: { sorting, columnFilters, columnVisibility, globalFilter },
-    onSortingChange: setSorting,
-    onColumnFiltersChange: setColumnFilters,
+    state: {
+      sorting,
+      columnFilters: server?.columnFilters ?? columnFilters,
+      columnVisibility,
+      globalFilter,
+      ...(server && { pagination: server.pagination }),
+    },
+    onSortingChange: server?.onSortingChange ?? setSorting,
+    onColumnFiltersChange: server?.onColumnFiltersChange ?? setColumnFilters,
     onColumnVisibilityChange: setColumnVisibility,
-    onGlobalFilterChange: setGlobalFilter,
+    onGlobalFilterChange: server?.onGlobalFilterChange ?? setGlobalFilter,
     getCoreRowModel: getCoreRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-    getFacetedRowModel: getFacetedRowModel(),
-    getFacetedUniqueValues: getFacetedUniqueValues(),
+    ...(server
+      ? {
+          manualPagination: true,
+          manualSorting: true,
+          manualFiltering: true,
+          rowCount: server.rowCount,
+          onPaginationChange: server.onPaginationChange,
+        }
+      : {
+          getFilteredRowModel: getFilteredRowModel(),
+          getSortedRowModel: getSortedRowModel(),
+          getPaginationRowModel: getPaginationRowModel(),
+          getFacetedRowModel: getFacetedRowModel(),
+          getFacetedUniqueValues: getFacetedUniqueValues(),
+        }),
   })
 
   return (

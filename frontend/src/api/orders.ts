@@ -1,10 +1,12 @@
-import { queryOptions } from '@tanstack/react-query'
+import { keepPreviousData, queryOptions } from '@tanstack/react-query'
 import { api } from './client'
 import {
   type Dimensions,
   type LeadInfo,
+  type ListParams,
   type Order,
   type OrderStatus,
+  type Paginated,
 } from './types'
 
 export type LeadPayload = Partial<Pick<LeadInfo, 'contacted' | 'comment'>> & {
@@ -14,11 +16,14 @@ export type LeadPayload = Partial<Pick<LeadInfo, 'contacted' | 'comment'>> & {
 
 export const ordersApi = {
   /**
-   * Orders visible to the user: their warehouse as origin or destination;
-   * all for the super-admin. Small volumes for now — will move to
-   * server-side pagination and filtering when the backend is ready.
+   * Orders visible to the user (their warehouse as origin or destination;
+   * all for the super-admin), one page. Params: page, page_size, ordering
+   * (`created_at`, `total_usd`; `-` = desc), search (number, client, phone,
+   * tracking), status / type / method (`a,b`), shipment, origin_warehouse,
+   * destination_warehouse, is_lead.
    */
-  list: () => api.get<Order[]>('/orders/').then((r) => r.data),
+  list: (params: ListParams) =>
+    api.get<Paginated<Order>>('/orders/', { params }).then((r) => r.data),
   get: (id: number) => api.get<Order>(`/orders/${id}/`).then((r) => r.data),
   updateLead: (id: number, data: LeadPayload) =>
     api.post<Order>(`/orders/${id}/lead/`, data).then((r) => r.data),
@@ -33,8 +38,12 @@ export const ordersApi = {
     api.post<Order>(`/orders/${id}/cancel/`, { reason }).then((r) => r.data),
 }
 
-export const ordersQuery = () =>
-  queryOptions({ queryKey: ['orders'], queryFn: ordersApi.list })
+export const ordersQuery = (params: ListParams) =>
+  queryOptions({
+    queryKey: ['orders', 'list', params],
+    queryFn: () => ordersApi.list(params),
+    placeholderData: keepPreviousData,
+  })
 
 export const orderQuery = (id: number) =>
   queryOptions({ queryKey: ['orders', id], queryFn: () => ordersApi.get(id) })

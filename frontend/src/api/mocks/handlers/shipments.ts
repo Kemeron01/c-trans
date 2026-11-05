@@ -11,6 +11,7 @@ import {
   forbidden,
   guard,
   notFound,
+  paginate,
   STAFF,
 } from '../utils'
 
@@ -29,11 +30,17 @@ export const shipmentHandlers = [
     await delay()
     const { user, error } = guard(request, [...STAFF])
     if (error) return error
-    return HttpResponse.json(
-      shipments
-        .filter((s) => visible(user, s))
-        .slice()
-        .reverse()
+    return paginate(
+      request,
+      shipments.filter((s) => visible(user, s)),
+      {
+        search: (s) => s.number,
+        filters: { status: (s) => s.status, method: (s) => s.method },
+        ordering: {
+          created_at: (s) => s.created_at,
+          number: (s) => s.number,
+        },
+      }
     )
   }),
 
@@ -71,6 +78,7 @@ export const shipmentHandlers = [
       arrived_at: null,
       order_ids: [],
       checkpoints: [],
+      created_at: new Date().toISOString(),
     }
     shipments.push(shipment)
     return HttpResponse.json(shipment, { status: 201 })
@@ -138,7 +146,10 @@ export const shipmentHandlers = [
     s.status = 'in_transit'
     s.departed_at = new Date().toISOString()
     for (const o of orders.filter((x) => s.order_ids.includes(x.id))) {
-      pushStatus(o, 'in_transit', user, s.number)
+      pushStatus(o, 'in_transit', user, {
+        event: 'shipment_departed',
+        ref: s.number,
+      })
     }
     return HttpResponse.json(s)
   }),
@@ -154,7 +165,10 @@ export const shipmentHandlers = [
     s.status = 'arrived'
     s.arrived_at = new Date().toISOString()
     for (const o of orders.filter((x) => s.order_ids.includes(x.id))) {
-      pushStatus(o, 'arrived_uz', user, s.number)
+      pushStatus(o, 'arrived_uz', user, {
+        event: 'shipment_arrived',
+        ref: s.number,
+      })
     }
     return HttpResponse.json(s)
   }),
@@ -173,7 +187,11 @@ export const shipmentHandlers = [
       }
       const data = (await request.json()) as CheckpointPayload
       s.checkpoints.push({
-        ...data,
+        // The mock has no translator: one name for every language
+        name: { ru: data.name, uz: data.name, en: data.name },
+        latitude: data.latitude,
+        longitude: data.longitude,
+        at: data.at,
         id: nextId(shipments.flatMap((x) => x.checkpoints)),
         created_by: { id: user.id, full_name: user.full_name },
       })

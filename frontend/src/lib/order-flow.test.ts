@@ -120,9 +120,30 @@ describe('progressOf', () => {
       order({
         status: 'cancelled',
         history: [
-          { status: 'lead_new', changed_by: null, at: '', comment: '' },
-          { status: 'awaiting_arrival', changed_by: null, at: '', comment: '' },
-          { status: 'cancelled', changed_by: null, at: '', comment: '' },
+          {
+            status: 'lead_new',
+            event: null,
+            ref: null,
+            changed_by: null,
+            at: '',
+            comment: '',
+          },
+          {
+            status: 'awaiting_arrival',
+            event: null,
+            ref: null,
+            changed_by: null,
+            at: '',
+            comment: '',
+          },
+          {
+            status: 'cancelled',
+            event: null,
+            ref: null,
+            changed_by: null,
+            at: '',
+            comment: '',
+          },
         ],
       })
     )

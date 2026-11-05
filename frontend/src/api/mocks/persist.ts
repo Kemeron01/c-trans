@@ -16,7 +16,7 @@ import { orders, reviews, shipments } from './db-orders'
 // it (created orders and shipments disappear). Saved to localStorage after
 // each change, restored on start, cleared with "Reset demo data".
 
-const KEY = 'ct_mock_db_v1'
+const KEY = 'ct_mock_db_v2'
 
 const stores: Record<string, unknown[]> = {
   countries,

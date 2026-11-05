@@ -13,6 +13,7 @@ import { type Order } from '@/api/types'
 import { applyServerErrors } from '@/lib/form-errors'
 import { formatDateTime, formatNumber, formatUsd } from '@/lib/format'
 import { LEAD_STATUSES } from '@/lib/order-flow'
+import { useServerTable } from '@/hooks/use-server-table'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -43,12 +44,12 @@ const OPEN = ['lead_new', 'lead_negotiation']
 /** Delivery requests being agreed with the client (requirements 5.2). */
 export function Leads() {
   const { t } = useTranslation()
-  const { data, isLoading } = useQuery(ordersQuery())
-  const leads = data?.filter(
-    (o) =>
-      o.type === 'delivery' &&
-      (LEAD_STATUSES.includes(o.status) || o.lead?.result)
-  )
+  const { params, bind } = useServerTable({
+    fixed: { is_lead: true },
+    filterParams: { status: 'status' },
+    initialFilters: [{ id: 'status', value: OPEN }],
+  })
+  const { data, isLoading } = useQuery(ordersQuery(params))
   const [selected, setSelected] = useState<Order | null>(null)
 
   const columns: ColumnDef<Order>[] = [
@@ -165,10 +166,10 @@ export function Leads() {
         />
         <DataTable
           columns={columns}
-          data={leads}
+          data={data?.results}
+          server={bind(data?.count ?? 0)}
           isLoading={isLoading}
           searchPlaceholder={t('orders.search')}
-          initialColumnFilters={[{ id: 'status', value: OPEN }]}
           filters={[
             {
               columnId: 'status',

@@ -34,8 +34,10 @@ export function useOrderQuote({
   const methods = (['auto', 'avia'] as DeliveryMethod[]).filter((m) =>
     origin.data?.tariffs.some((t) => t.method === m)
   )
+  // Courier price is unknown until the Uzbek warehouse tariffs are loaded
+  const courierLoading = receive === 'courier' && !destination.data
   const quote =
-    dimensions && origin.data?.settings
+    dimensions && origin.data?.settings && !courierLoading
       ? quoteOrder({
           dimensions,
           method,

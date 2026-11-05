@@ -361,7 +361,20 @@ export const en: Translation = {
       adjustment: 'Adjustment',
     },
   },
+  historyEvent: {
+    auto_charged: 'Charged automatically from the card',
+    charge_failed: 'Charge failed: no card linked',
+    lead_agreed: 'Request agreed',
+    lead_rejected: 'Request rejected',
+    cargo_received: 'Cargo received at the warehouse and weighed',
+    shipment_departed: 'Shipment {{ref}} departed',
+    shipment_arrived: 'Shipment {{ref}} arrived in Uzbekistan',
+    cancelled_by_client: 'Cancelled by the client',
+    cancelled_by_staff: 'Cancelled by an administrator',
+    cancelled_with_refund: 'Cancelled, funds refunded',
+  },
   workers: {
+    descriptionAll: 'Workers of all warehouses.',
     description:
       'Workers of the “{{warehouse}}” warehouse. New ones are created through a request to the super admin.',
   },
@@ -376,6 +389,8 @@ export const en: Translation = {
     rate: 'CBU rate {{rate}}',
     belowMinimum:
       'Weight is below the warehouse minimum ({{min}}) — the order will not be accepted.',
+    noCourierTariff:
+      'No courier tariff covers the weight of this order. Choose pickup or contact the warehouse.',
     noTariff: 'No tariff covers this weight.',
   },
   orders: {
@@ -455,6 +470,15 @@ export const en: Translation = {
     noEligible: 'No matching orders.',
     addCheckpoint: 'Add checkpoint',
     checkpointName: 'Checkpoint name',
+    pickPresets: 'Ready points',
+    pickSearch: 'City search',
+    pickMap: 'On the map',
+    searchPlace: 'City or place...',
+    placeNotFound: 'Nothing found.',
+    mapHint: 'Click the map to place the point.',
+    geocoderError:
+      'Could not reach the geocoder. Pick a ready point or click the map.',
+    pickPlaceFirst: 'Pick a point: ready-made, by search or on the map.',
     checkpointTime: 'Time',
     depart: 'Dispatch',
     arrive: 'Accept shipment',

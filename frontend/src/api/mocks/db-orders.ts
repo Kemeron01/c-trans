@@ -56,10 +56,23 @@ export function orderDimensions(order: Order): Dimensions {
   )
 }
 
-/** Recomputes amounts (and cargo weights) the way the backend would. */
-export function recalculate(order: Order) {
+export type RecalcError = 'no_settings' | 'no_tariff' | 'no_courier_tariff'
+
+/** Backend error text for a failed recalculation. */
+export const RECALC_MESSAGES: Record<RecalcError, string> = {
+  no_settings: 'Для склада не заданы настройки доставки.',
+  no_tariff: 'Для такого веса или способа доставки нет тарифа.',
+  no_courier_tariff: 'Для веса заказа нет тарифа курьера.',
+}
+
+/**
+ * Recomputes amounts (and cargo weights) the way the backend would.
+ * When the order cannot be priced (no tariff) it is left untouched and the
+ * reason is returned: a missing tariff must never turn the total into 0.
+ */
+export function recalculate(order: Order): RecalcError | null {
   const s = settings.find((x) => x.warehouse_id === order.origin_warehouse.id)
-  if (!s) return
+  if (!s) return 'no_settings'
   const quote = quoteOrder({
     dimensions: orderDimensions(order),
     method: order.method,
@@ -73,23 +86,28 @@ export function recalculate(order: Order) {
           )
         : undefined,
   })
+  if (quote.delivery_usd === null) return 'no_tariff'
+  if (quote.total_usd === null || quote.courier_usd === null) {
+    return 'no_courier_tariff'
+  }
   if (order.cargo) {
     order.cargo.volume_weight = order.cargo.actual ? quote.volume_weight : null
     order.cargo.chargeable_weight = order.cargo.actual
       ? quote.chargeable_weight
       : null
   }
-  const total = quote.total_usd ?? 0
+  const total = quote.total_usd
   const charged = CHARGED.includes(order.status)
   order.amounts = {
     goods_usd: quote.goods_usd,
-    delivery_usd: quote.delivery_usd ?? 0,
+    delivery_usd: quote.delivery_usd,
     courier_usd: quote.courier_usd,
     total_usd: total,
     rate_uzs: charged ? RATE_UZS : null,
     total_uzs: charged ? toUzs(total, RATE_UZS) : null,
     is_preliminary: order.type === 'delivery' && !order.cargo!.actual,
   }
+  return null
 }
 
 const dims = (w: number, l: number, wd: number, h: number): Dimensions => ({
@@ -118,9 +136,11 @@ function historyFor(order: Order) {
   const start = new Date(order.created_at).getTime()
   return path.map((status, i) => ({
     status,
+    event: status === 'paid' ? ('auto_charged' as const) : null,
+    ref: null,
     changed_by: null,
     at: new Date(start + i * 18 * HOUR).toISOString(),
-    comment: status === 'paid' ? 'Автосписание с карты' : '',
+    comment: '',
   }))
 }
 
@@ -154,7 +174,9 @@ function seed(o: Seed): Order {
     ...o,
   }
   order.history = historyFor(order)
-  recalculate(order)
+  const error = recalculate(order)
+  // Demo data must be priceable: a 0 total on screen would hide the bug
+  if (error) throw new Error(`Demo order ${order.number}: ${error}`)
   return order
 }
 
@@ -311,7 +333,8 @@ for (let i = 0; i < 26; i++) {
             status: 'delivered',
             client,
             created_at: created.toISOString(),
-            items: [item(1 + (i % 3), 1 + (i % 2))],
+            // Product 2 (phone case, 0.1 kg) is under the lowest tariff range
+            items: [item([1, 3, 3][i % 3], 1 + (i % 2))],
           }
         : {
             id,
@@ -410,6 +433,7 @@ export const shipments: Shipment[] = [
         created_by: user(3, 'Чжан Мин'),
       },
     ],
+    created_at: '2026-10-15T09:00:00Z',
   },
   {
     id: 2,
@@ -445,5 +469,6 @@ export const shipments: Shipment[] = [
         created_by: user(5, 'Бобур Алиев'),
       },
     ],
+    created_at: '2026-10-04T09:00:00Z',
   },
 ]

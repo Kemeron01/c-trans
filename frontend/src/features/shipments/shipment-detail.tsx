@@ -84,7 +84,21 @@ function ShipmentView({ shipment: s }: { shipment: Shipment }) {
   const localized = useLocalized()
   const user = useCurrentUser()
   const saved = useShipmentSaved()
-  const orders = useQuery(ordersQuery()).data ?? []
+  // Orders in this shipment, and (while forming) those that could join it
+  const included =
+    useQuery(ordersQuery({ shipment: s.id, page_size: 100 })).data?.results ??
+    []
+  const candidates =
+    useQuery({
+      ...ordersQuery({
+        status: 'ready_to_ship',
+        method: s.method,
+        origin_warehouse: s.origin_warehouse.id,
+        destination_warehouse: s.destination_warehouse.id,
+        page_size: 100,
+      }),
+      enabled: s.status === 'forming',
+    }).data?.results ?? []
   const [dialog, setDialog] = useState<DialogState>(null)
 
   const isOrigin =
@@ -93,7 +107,6 @@ function ShipmentView({ shipment: s }: { shipment: Shipment }) {
     user.role === 'super_admin' ||
     user.warehouse?.id === s.destination_warehouse.id
   const forming = s.status === 'forming'
-  const included = orders.filter((o) => s.order_ids.includes(o.id))
 
   const act = useMutation({
     mutationFn: (
@@ -284,7 +297,7 @@ function ShipmentView({ shipment: s }: { shipment: Shipment }) {
       {dialog === 'orders' && (
         <AddOrdersDialog
           shipment={s}
-          orders={orders}
+          orders={candidates}
           onClose={() => setDialog(null)}
         />
       )}

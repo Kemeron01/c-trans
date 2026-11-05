@@ -1,4 +1,5 @@
 import { queryOptions } from '@tanstack/react-query'
+import { isActive } from '@/lib/order-flow'
 import { type LoginResponse } from './auth'
 import { api } from './client'
 import {
@@ -139,19 +140,36 @@ export const profileQuery = () =>
 export const cardsQuery = () =>
   queryOptions({ queryKey: ['client', 'cards'], queryFn: clientApi.cards })
 
+/** How often the client's open orders are re-read (status moves on the backend). */
+export const ORDER_POLL_MS = 15 * 1000
+
+// Polling pauses in background tabs (react-query default) and stops once
+// the order is delivered / cancelled / rejected.
 export const clientOrdersQuery = () =>
-  queryOptions({ queryKey: ['client', 'orders'], queryFn: clientApi.orders })
+  queryOptions({
+    queryKey: ['client', 'orders'],
+    queryFn: clientApi.orders,
+    refetchInterval: (query) =>
+      query.state.data?.some((o) => isActive(o.status)) ? ORDER_POLL_MS : false,
+  })
 
 export const clientOrderQuery = (id: number) =>
   queryOptions({
     queryKey: ['client', 'orders', id],
     queryFn: () => clientApi.order(id),
+    refetchInterval: (query) =>
+      !query.state.data || isActive(query.state.data.status)
+        ? ORDER_POLL_MS
+        : false,
   })
 
 export const trackingQuery = (id: number) =>
   queryOptions({
     queryKey: ['client', 'orders', id, 'tracking'],
     queryFn: () => clientApi.tracking(id),
+    // The shipment moves: new checkpoints until it has arrived
+    refetchInterval: (query) =>
+      query.state.data?.shipment_status === 'arrived' ? false : ORDER_POLL_MS,
   })
 
 export const notificationsQuery = () =>

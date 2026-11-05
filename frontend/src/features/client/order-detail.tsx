@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { getRouteApi, Link } from '@tanstack/react-router'
 import { AlertTriangle, ArrowLeft, Ban, CreditCard, Info } from 'lucide-react'
@@ -79,6 +79,16 @@ function OrderView({ order }: { order: Order }) {
   )
   const refresh = () => queryClient.invalidateQueries({ queryKey: ['client'] })
   const a = order.amounts
+
+  // The order is polled: when its status changes, the backend has also
+  // added a notification — show it in the bell without waiting for its poll
+  const shownStatus = useRef(order.status)
+  useEffect(() => {
+    if (shownStatus.current === order.status) return
+    shownStatus.current = order.status
+    queryClient.invalidateQueries({ queryKey: ['client', 'notifications'] })
+    queryClient.invalidateQueries({ queryKey: ['client', 'orders'] })
+  }, [order.status, queryClient])
 
   const cancel = useMutation({
     mutationFn: () => clientApi.cancelOrder(order.id),
@@ -294,8 +304,15 @@ function OrderView({ order }: { order: Order }) {
               .reverse()
               .map((h, i) => (
                 <li key={i} className='flex flex-wrap justify-between gap-2'>
-                  <span className='font-medium'>
-                    {t(`orderStatus.${h.status}`)}
+                  <span>
+                    <span className='font-medium'>
+                      {t(`orderStatus.${h.status}`)}
+                    </span>
+                    {h.event && (
+                      <span className='block text-xs text-muted-foreground'>
+                        {t(`historyEvent.${h.event}`, { ref: h.ref ?? '' })}
+                      </span>
+                    )}
                   </span>
                   <span className='text-muted-foreground'>
                     {formatDateTime(h.at)}

@@ -47,7 +47,7 @@ export const userRequestsApi = {
       .then((r) => r.data),
 }
 
-/** Workers of the admin's warehouse (super-admin: of `warehouse`). */
+/** Workers of the admin's warehouse (super-admin: all, or of `warehouse`). */
 export const workersApi = {
   list: (warehouseId?: number) =>
     api

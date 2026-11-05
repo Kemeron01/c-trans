@@ -22,6 +22,7 @@ import {
   clientRef,
   orderDimensions,
   orders,
+  RECALC_MESSAGES,
   recalculate,
   reviews,
   shipments,
@@ -402,12 +403,10 @@ export const clientHandlers = [
       order.lead = { contacted: false, result: null, comment: '' }
     }
 
-    recalculate(order)
+    const priceError = recalculate(order)
+    if (priceError) return badRequest(RECALC_MESSAGES[priceError])
     const s = settings.find((x) => x.warehouse_id === origin.id)
     const weight = orderDimensions(order)
-    if (!order.amounts.delivery_usd) {
-      return badRequest('Для такого веса или способа доставки нет тарифа.')
-    }
     if (s && weight.weight_kg < s.min_weight_kg && order.type === 'delivery') {
       return badRequest(
         `Минимальный вес для этого склада — ${s.min_weight_kg} кг.`
@@ -434,7 +433,7 @@ export const clientHandlers = [
       if (!clientCanCancel(order))
         return badRequest('Этот заказ уже нельзя отменить.')
       cancelStock(order)
-      pushStatus(order, 'cancelled', user, 'Отменён клиентом')
+      pushStatus(order, 'cancelled', user, { event: 'cancelled_by_client' })
       return HttpResponse.json(order)
     }
   ),

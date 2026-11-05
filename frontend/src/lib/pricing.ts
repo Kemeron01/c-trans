@@ -100,8 +100,9 @@ export function itemsDimensions(
 
 export type OrderQuote = DeliveryQuote & {
   goods_usd: number
-  courier_usd: number
-  /** null when delivery cannot be priced (no tariff). */
+  /** 0 for pickup; null when a courier was chosen but no courier tariff covers the weight. */
+  courier_usd: number | null
+  /** null when delivery or the courier cannot be priced (no tariff). */
   total_usd: number | null
 }
 
@@ -116,15 +117,16 @@ export function quoteOrder({
   courierTariffs?: CourierTariff[]
 }): OrderQuote {
   const quote = quoteDelivery(delivery)
+  // A chosen courier without a matching tariff is an error, never a free ride
   const courier = courierTariffs
-    ? (findRange(courierTariffs, quote.chargeable_weight)?.price ?? 0)
+    ? (findRange(courierTariffs, quote.chargeable_weight)?.price ?? null)
     : 0
   return {
     ...quote,
     goods_usd: round(goodsUsd),
     courier_usd: courier,
     total_usd:
-      quote.delivery_usd === null
+      quote.delivery_usd === null || courier === null
         ? null
         : round(goodsUsd + quote.delivery_usd + courier),
   }

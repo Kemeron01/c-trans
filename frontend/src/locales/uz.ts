@@ -361,7 +361,20 @@ export const uz: Translation = {
       adjustment: 'Tuzatish',
     },
   },
+  historyEvent: {
+    auto_charged: 'Kartadan avtomatik yechib olindi',
+    charge_failed: "To'lov o'tmadi: karta biriktirilmagan",
+    lead_agreed: 'Ariza kelishildi',
+    lead_rejected: 'Ariza rad etildi',
+    cargo_received: 'Yuk omborda qabul qilindi va tortildi',
+    shipment_departed: "{{ref}} jo'natmasi yo'lga chiqdi",
+    shipment_arrived: "{{ref}} jo'natmasi O'zbekistonga yetib keldi",
+    cancelled_by_client: 'Mijoz tomonidan bekor qilindi',
+    cancelled_by_staff: 'Administrator tomonidan bekor qilindi',
+    cancelled_with_refund: "Bekor qilindi, mablag' qaytarildi",
+  },
   workers: {
+    descriptionAll: 'Barcha omborlar xodimlari.',
     description:
       "«{{warehouse}}» ombori xodimlari. Yangilari super-adminga so'rov orqali yaratiladi.",
   },
@@ -376,6 +389,8 @@ export const uz: Translation = {
     rate: 'MB kursi {{rate}}',
     belowMinimum:
       "Og'irlik ombor minimalidan ({{min}}) kam — buyurtma qabul qilinmaydi.",
+    noCourierTariff:
+      "Buyurtma vazni uchun kuryer tarifi yo'q. O'zi olib ketishni tanlang yoki ombor bilan bog'laning.",
     noTariff: "Bunday og'irlik uchun tarif yo'q.",
   },
   orders: {
@@ -455,6 +470,15 @@ export const uz: Translation = {
     noEligible: "Mos buyurtmalar yo'q.",
     addCheckpoint: 'Nuqtani belgilash',
     checkpointName: 'Nuqta nomi',
+    pickPresets: 'Tayyor nuqtalar',
+    pickSearch: 'Shahar qidirish',
+    pickMap: 'Xaritada',
+    searchPlace: 'Shahar yoki joy...',
+    placeNotFound: 'Hech narsa topilmadi.',
+    mapHint: "Nuqtani qo'yish uchun xaritani bosing.",
+    geocoderError:
+      "Geokoder bilan aloqa o'rnatib bo'lmadi. Tayyor nuqtalardan yoki xaritadan tanlang.",
+    pickPlaceFirst: 'Nuqtani tanlang: tayyorlardan, qidiruv yoki xaritadan.',
     checkpointTime: 'Vaqt',
     depart: "Jo'natish",
     arrive: "Jo'natmani qabul qilish",

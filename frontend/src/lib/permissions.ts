@@ -42,7 +42,7 @@ const ACCESS: Record<Section, readonly Grant[]> = {
   tariffs: ['super_admin', 'admin:foreign'],
   courier_tariffs: ['super_admin', 'admin:local'], // open question 4
   catalog: ['super_admin', 'admin:foreign', 'worker:foreign'],
-  workers: ['admin'],
+  workers: ['super_admin', 'admin'], // super_admin: workers of all warehouses
   clients: ['super_admin', 'admin'],
   reviews: ['super_admin', 'admin'],
   countries: ['super_admin'],

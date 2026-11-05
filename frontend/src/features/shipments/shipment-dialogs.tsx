@@ -8,12 +8,12 @@ import { toast } from 'sonner'
 import { shipmentsApi } from '@/api/shipments'
 import { type Order, type Shipment } from '@/api/types'
 import { applyServerErrors } from '@/lib/form-errors'
-import { localizedTextSchema, requiredString } from '@/lib/validation'
+import { requiredString } from '@/lib/validation'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Form } from '@/components/ui/form'
 import { FormDialog } from '@/components/form-dialog'
 import { TextField } from '@/components/form-fields'
-import { LocalizedFields } from '@/components/localized-fields'
+import { CheckpointPicker, type PickedPlace } from './checkpoint-picker'
 import { useShipmentSaved } from './use-shipment-saved'
 
 /** Orders that can join: ready to ship, same origin, destination and method. */
@@ -95,15 +95,7 @@ export function AddOrdersDialog({
 }
 
 const checkpointSchema = z.object({
-  name: localizedTextSchema(),
-  latitude: requiredString().refine(
-    (v) => Math.abs(Number(v)) <= 90 && v !== '' && !isNaN(Number(v)),
-    'validation.latitude'
-  ),
-  longitude: requiredString().refine(
-    (v) => Math.abs(Number(v)) <= 180 && v !== '' && !isNaN(Number(v)),
-    'validation.longitude'
-  ),
+  name: requiredString(),
   at: requiredString(),
 })
 type CheckpointValues = z.infer<typeof checkpointSchema>
@@ -115,7 +107,11 @@ const nowLocal = () => {
   return d.toISOString().slice(0, 16)
 }
 
-/** Manual checkpoint for the whole shipment (requirements 6, v1). */
+/**
+ * Manual checkpoint for the whole shipment (requirements 6, v1). The point
+ * is chosen (ready-made / city search / map click), never typed as numbers;
+ * the name is a single string, backend stores it for all languages.
+ */
 export function CheckpointDialog({
   shipment,
   onClose,
@@ -125,21 +121,18 @@ export function CheckpointDialog({
 }) {
   const { t } = useTranslation()
   const saved = useShipmentSaved()
+  const [place, setPlace] = useState<PickedPlace | null>(null)
+  const [noPlace, setNoPlace] = useState(false)
   const form = useForm<CheckpointValues>({
     resolver: zodResolver(checkpointSchema),
-    defaultValues: {
-      name: { ru: '', uz: '', en: '' },
-      latitude: '',
-      longitude: '',
-      at: nowLocal(),
-    },
+    defaultValues: { name: '', at: nowLocal() },
   })
   const add = useMutation({
     mutationFn: (v: CheckpointValues) =>
       shipmentsApi.addCheckpoint(shipment.id, {
         name: v.name,
-        latitude: Number(v.latitude),
-        longitude: Number(v.longitude),
+        latitude: place!.latitude,
+        longitude: place!.longitude,
         at: new Date(v.at).toISOString(),
       }),
     onSuccess: () => {
@@ -149,6 +142,13 @@ export function CheckpointDialog({
     },
     onError: (error) => applyServerErrors(error, form),
   })
+
+  const pick = (p: PickedPlace) => {
+    setPlace(p)
+    setNoPlace(false)
+    // Suggested name replaces the previous suggestion, a hand edit is kept
+    if (p.name) form.setValue('name', p.name, { shouldValidate: true })
+  }
 
   return (
     <FormDialog
@@ -162,28 +162,23 @@ export function CheckpointDialog({
       <Form {...form}>
         <form
           id='checkpoint-form'
-          onSubmit={form.handleSubmit((v) => add.mutate(v))}
+          onSubmit={form.handleSubmit((v) => {
+            if (!place) return setNoPlace(true)
+            add.mutate(v)
+          })}
           className='grid gap-4'
         >
-          <LocalizedFields
+          <CheckpointPicker shipment={shipment} value={place} onChange={pick} />
+          {noPlace && (
+            <p role='alert' className='text-sm text-destructive'>
+              {t('shipments.pickPlaceFirst')}
+            </p>
+          )}
+          <TextField
             control={form.control}
             name='name'
             label={t('shipments.checkpointName')}
           />
-          <div className='grid gap-4 sm:grid-cols-2'>
-            <TextField
-              control={form.control}
-              name='latitude'
-              label={t('warehouses.latitude')}
-              numeric
-            />
-            <TextField
-              control={form.control}
-              name='longitude'
-              label={t('warehouses.longitude')}
-              numeric
-            />
-          </div>
           <TextField
             control={form.control}
             name='at'

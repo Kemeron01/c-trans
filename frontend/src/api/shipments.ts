@@ -1,6 +1,11 @@
-import { queryOptions } from '@tanstack/react-query'
+import { keepPreviousData, queryOptions } from '@tanstack/react-query'
 import { api } from './client'
-import { type DeliveryMethod, type LocalizedText, type Shipment } from './types'
+import {
+  type DeliveryMethod,
+  type ListParams,
+  type Paginated,
+  type Shipment,
+} from './types'
 
 export type ShipmentPayload = {
   method: DeliveryMethod
@@ -9,15 +14,18 @@ export type ShipmentPayload = {
   planned_arrival: string
 }
 
+/** One name: backend stores it for uz / ru / en (translation is its job). */
 export type CheckpointPayload = {
-  name: LocalizedText
+  name: string
   latitude: number
   longitude: number
   at: string
 }
 
 export const shipmentsApi = {
-  list: () => api.get<Shipment[]>('/shipments/').then((r) => r.data),
+  /** One page. Params: page, page_size, ordering (`created_at`), search, status / method (`a,b`). */
+  list: (params: ListParams) =>
+    api.get<Paginated<Shipment>>('/shipments/', { params }).then((r) => r.data),
   get: (id: number) =>
     api.get<Shipment>(`/shipments/${id}/`).then((r) => r.data),
   /** Origin = the worker's own foreign warehouse (set by backend). */
@@ -43,8 +51,12 @@ export const shipmentsApi = {
       .then((r) => r.data),
 }
 
-export const shipmentsQuery = () =>
-  queryOptions({ queryKey: ['shipments'], queryFn: shipmentsApi.list })
+export const shipmentsQuery = (params: ListParams) =>
+  queryOptions({
+    queryKey: ['shipments', 'list', params],
+    queryFn: () => shipmentsApi.list(params),
+    placeholderData: keepPreviousData,
+  })
 
 export const shipmentQuery = (id: number) =>
   queryOptions({

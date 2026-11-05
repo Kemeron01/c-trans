@@ -67,3 +67,44 @@ export const forbidden = () =>
 
 export const STAFF = ['super_admin', 'admin', 'worker'] as const
 export const MANAGERS = ['super_admin', 'admin'] as const
+
+type PageSpec<T> = {
+  /** Text the `search` param is looked for in. */
+  search?: (item: T) => string
+  /** Query param → value of the item; the param is `a,b` (any of). */
+  filters?: Record<string, (item: T) => string | undefined>
+  /** `ordering` field → sort key. */
+  ordering: Record<string, (item: T) => string | number>
+}
+
+/** Like DRF's SearchFilter + OrderingFilter + PageNumberPagination. */
+export function paginate<T>(request: Request, items: T[], spec: PageSpec<T>) {
+  const q = new URL(request.url).searchParams
+  let rows = items
+  const search = q.get('search')?.trim().toLowerCase()
+  if (search && spec.search) {
+    rows = rows.filter((x) => spec.search!(x).toLowerCase().includes(search))
+  }
+  for (const [param, get] of Object.entries(spec.filters ?? {})) {
+    const wanted = q.get(param)?.split(',').filter(Boolean)
+    if (wanted?.length) {
+      rows = rows.filter((x) => wanted.includes(get(x) ?? ''))
+    }
+  }
+  const ordering = q.get('ordering') ?? '-created_at'
+  const desc = ordering.startsWith('-')
+  const key = spec.ordering[desc ? ordering.slice(1) : ordering]
+  if (key) {
+    rows = rows.slice().sort((a, b) => {
+      const [x, y] = [key(a), key(b)]
+      const cmp = x < y ? -1 : x > y ? 1 : 0
+      return desc ? -cmp : cmp
+    })
+  }
+  const pageSize = Math.min(Math.max(Number(q.get('page_size')) || 10, 1), 100)
+  const page = Math.max(Number(q.get('page')) || 1, 1)
+  return HttpResponse.json({
+    count: rows.length,
+    results: rows.slice((page - 1) * pageSize, page * pageSize),
+  })
+}

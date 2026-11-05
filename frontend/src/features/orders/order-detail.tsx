@@ -291,7 +291,14 @@ function OrderView({ order }: { order: Order }) {
                       {formatDateTime(h.at)} ·{' '}
                       {h.changed_by?.full_name ?? t('orders.system')}
                     </div>
-                    {h.comment && <div>{h.comment}</div>}
+                    {h.event && (
+                      <div>
+                        {t(`historyEvent.${h.event}`, { ref: h.ref ?? '' })}
+                      </div>
+                    )}
+                    {h.comment && (
+                      <div className='text-muted-foreground'>{h.comment}</div>
+                    )}
                   </li>
                 ))}
             </ol>

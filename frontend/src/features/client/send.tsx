@@ -288,7 +288,8 @@ export function SendCargo() {
                   create.isPending ||
                   !profile?.full_name ||
                   !quote?.tariff ||
-                  quote.below_minimum
+                  quote.below_minimum ||
+                  quote.total_usd === null
                 }
               >
                 {t('send.submit')}

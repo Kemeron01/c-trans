@@ -21,10 +21,15 @@ function user(role: Role, kind?: WarehouseKind): CurrentUser {
 describe('canAccess', () => {
   it('gives super_admin the system sections', () => {
     const superAdmin = user('super_admin')
-    for (const section of ['countries', 'warehouses', 'admins'] as const) {
+    for (const section of [
+      'countries',
+      'warehouses',
+      'admins',
+      'workers', // workers of all warehouses
+    ] as const) {
       expect(canAccess(superAdmin, section)).toBe(true)
     }
-    expect(canAccess(superAdmin, 'workers')).toBe(false)
+    expect(canAccess(user('worker', 'foreign'), 'workers')).toBe(false)
   })
 
   it('limits warehouse-kind sections to the matching admin', () => {

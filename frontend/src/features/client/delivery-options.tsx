@@ -158,23 +158,27 @@ export function QuoteSummary({
           {t('orders.delivery')} · {formatNumber(quote.chargeable_weight)}{' '}
           {t('dims.kg')}
         </dt>
-        <dd>{formatUsd(quote.delivery_usd)}</dd>
-        {quote.courier_usd > 0 && (
+        <dd>
+          {quote.delivery_usd === null ? '—' : formatUsd(quote.delivery_usd)}
+        </dd>
+        {quote.courier_usd !== null && quote.courier_usd > 0 && (
           <>
             <dt className='text-muted-foreground'>{t('orders.courier')}</dt>
             <dd>{formatUsd(quote.courier_usd)}</dd>
           </>
         )}
       </dl>
-      <div className='rounded-lg bg-muted p-4'>
-        <div className='text-sm text-muted-foreground'>
-          {preliminary ? t('checkout.preliminaryTotal') : t('orders.total')}
+      {quote.total_usd !== null && (
+        <div className='rounded-lg bg-muted p-4'>
+          <div className='text-sm text-muted-foreground'>
+            {preliminary ? t('checkout.preliminaryTotal') : t('orders.total')}
+          </div>
+          <div className='text-2xl font-bold'>{formatUsd(quote.total_usd)}</div>
+          <div className='text-sm text-muted-foreground'>
+            {uzs(quote.total_usd)}
+          </div>
         </div>
-        <div className='text-2xl font-bold'>{formatUsd(quote.total_usd)}</div>
-        <div className='text-sm text-muted-foreground'>
-          {uzs(quote.total_usd)}
-        </div>
-      </div>
+      )}
       {preliminary && (
         <p className='text-xs text-muted-foreground'>
           {t('checkout.preliminaryHint')}
@@ -194,6 +198,12 @@ export function QuoteSummary({
         <Alert variant='destructive'>
           <AlertTriangle />
           <AlertDescription>{t('calculator.noTariff')}</AlertDescription>
+        </Alert>
+      )}
+      {quote.tariff && quote.courier_usd === null && (
+        <Alert variant='destructive'>
+          <AlertTriangle />
+          <AlertDescription>{t('calculator.noCourierTariff')}</AlertDescription>
         </Alert>
       )}
     </div>

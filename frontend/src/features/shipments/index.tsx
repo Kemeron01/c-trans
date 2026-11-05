@@ -15,6 +15,7 @@ import { applyServerErrors } from '@/lib/form-errors'
 import { formatDate, todayLocal } from '@/lib/format'
 import { requiredString } from '@/lib/validation'
 import { useCurrentUser } from '@/hooks/use-current-user'
+import { useServerTable } from '@/hooks/use-server-table'
 import { Button } from '@/components/ui/button'
 import {
   Form,
@@ -36,7 +37,10 @@ import { ShipmentStatusBadge } from './shipment-status-badge'
 export function Shipments() {
   const { t } = useTranslation()
   const user = useCurrentUser()
-  const { data, isLoading } = useQuery(shipmentsQuery())
+  const { params, bind } = useServerTable({
+    filterParams: { status: 'status', route: 'method' },
+  })
+  const { data, isLoading } = useQuery(shipmentsQuery(params))
   const [creating, setCreating] = useState(false)
   // Only staff of a foreign warehouse form shipments
   const canCreate = user.warehouse?.kind === 'foreign'
@@ -122,7 +126,8 @@ export function Shipments() {
         </PageHeading>
         <DataTable
           columns={columns}
-          data={data}
+          data={data?.results}
+          server={bind(data?.count ?? 0)}
           isLoading={isLoading}
           searchPlaceholder={t('shipments.search')}
           filters={[
@@ -186,7 +191,7 @@ function CreateShipmentDialog({ onClose }: { onClose: () => void }) {
         destination_warehouse_id: Number(v.destination_warehouse_id),
       }),
     onSuccess: (s) => {
-      queryClient.invalidateQueries({ queryKey: shipmentsQuery().queryKey })
+      queryClient.invalidateQueries({ queryKey: ['shipments'] })
       toast.success(t('common.created'))
       navigate({
         to: '/admin/shipments/$shipmentId',

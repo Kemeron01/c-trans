@@ -113,7 +113,12 @@ export function WarehouseDialog({ warehouse, onClose }: WarehouseDialogProps) {
     />
   )
 
-  const coord = (name: 'latitude' | 'longitude', label: string) => (
+  // Example: Tashkent is 41.2995, 69.2401 (latitude first)
+  const coord = (
+    name: 'latitude' | 'longitude',
+    label: string,
+    placeholder: string
+  ) => (
     <FormField
       control={form.control}
       name={name}
@@ -121,7 +126,7 @@ export function WarehouseDialog({ warehouse, onClose }: WarehouseDialogProps) {
         <FormItem>
           <FormLabel>{label}</FormLabel>
           <FormControl>
-            <Input inputMode='decimal' placeholder='41.2995' {...field} />
+            <Input inputMode='decimal' placeholder={placeholder} {...field} />
           </FormControl>
           <FormMessage />
         </FormItem>
@@ -200,8 +205,8 @@ export function WarehouseDialog({ warehouse, onClose }: WarehouseDialogProps) {
           {text('city', t('warehouses.city'))}
           {text('address', t('warehouses.address'))}
           <div className='grid gap-4 sm:grid-cols-2'>
-            {coord('latitude', t('warehouses.latitude'))}
-            {coord('longitude', t('warehouses.longitude'))}
+            {coord('latitude', t('warehouses.latitude'), '41.2995')}
+            {coord('longitude', t('warehouses.longitude'), '69.2401')}
           </div>
           <FormField
             control={form.control}

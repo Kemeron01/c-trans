@@ -8,9 +8,11 @@ import { referenceHandlers } from './handlers/reference'
 import { setupHandlers } from './handlers/setup'
 import { shipmentHandlers } from './handlers/shipments'
 import { staffHandlers } from './handlers/staff'
+import { resumeAutoCharges } from './lifecycle'
 import { persist, restore } from './persist'
 
 restore()
+resumeAutoCharges()
 
 export const worker = setupWorker(
   ...authHandlers,

@@ -149,6 +149,21 @@ describe('quoteOrder', () => {
     expect(quote.total_usd).toBe(240)
   })
 
+  it('has no total when a chosen courier has no tariff for the weight', () => {
+    const quote = quoteOrder({
+      dimensions: { weight_kg: 30, length_cm: 1, width_cm: 1, height_cm: 1 },
+      method: 'auto',
+      settings,
+      tariffs,
+      courierTariffs: [
+        { id: 1, warehouse_id: 4, weight_from: 0, weight_to: 10, price: 3 },
+      ],
+    })
+    expect(quote.delivery_usd).not.toBeNull()
+    expect(quote.courier_usd).toBeNull()
+    expect(quote.total_usd).toBeNull()
+  })
+
   it('has no total when delivery cannot be priced', () => {
     const quote = quoteOrder({
       dimensions: { weight_kg: 1, length_cm: 1, width_cm: 1, height_cm: 1 },

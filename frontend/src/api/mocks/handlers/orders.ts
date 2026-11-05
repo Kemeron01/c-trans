@@ -1,5 +1,11 @@
 import { delay, http, HttpResponse } from 'msw'
-import { canCancel, isOnSide, manualSteps, needsRefund } from '@/lib/order-flow'
+import {
+  canCancel,
+  isOnSide,
+  LEAD_STATUSES,
+  manualSteps,
+  needsRefund,
+} from '@/lib/order-flow'
 import { API_URL } from '../../config'
 import { type LeadPayload } from '../../orders'
 import {
@@ -9,9 +15,16 @@ import {
   type OrderStatus,
 } from '../../types'
 import { settings, toCurrentUser, type MockUser } from '../db'
-import { orders, recalculate } from '../db-orders'
+import { orders, RECALC_MESSAGES, recalculate } from '../db-orders'
 import { cancelStock, charge, pushStatus } from '../lifecycle'
-import { badRequest, forbidden, guard, notFound, STAFF } from '../utils'
+import {
+  badRequest,
+  forbidden,
+  guard,
+  notFound,
+  paginate,
+  STAFF,
+} from '../utils'
 
 /** Origin or destination is the user's warehouse; super-admin sees all. */
 export const visibleTo = (user: MockUser, order: Order) =>
@@ -31,12 +44,42 @@ export const orderHandlers = [
     await delay()
     const { user, error } = guard(request, [...STAFF])
     if (error) return error
-    return HttpResponse.json(
-      orders
-        .filter((o) => visibleTo(user, o))
-        .slice()
-        .reverse()
+    const q = new URL(request.url).searchParams
+    const only = (param: string, get: (o: Order) => unknown) => {
+      const v = q.get(param)
+      return (o: Order) => !v || String(get(o)) === v
+    }
+    const isLead = (o: Order) =>
+      o.type === 'delivery' &&
+      (LEAD_STATUSES.includes(o.status) || !!o.lead?.result)
+    const visible = orders.filter(
+      (o) =>
+        visibleTo(user, o) &&
+        only('shipment', (x) => x.shipment?.id)(o) &&
+        only('origin_warehouse', (x) => x.origin_warehouse.id)(o) &&
+        only('destination_warehouse', (x) => x.destination_warehouse.id)(o) &&
+        (q.get('is_lead') !== 'true' || isLead(o))
     )
+    return paginate(request, visible, {
+      search: (o) =>
+        [
+          o.number,
+          o.client.client_code,
+          o.client.full_name,
+          o.client.phone,
+          ...(o.cargo?.tracking_numbers ?? []),
+        ].join(' '),
+      filters: {
+        status: (o) => o.status,
+        type: (o) => o.type,
+        method: (o) => o.method,
+      },
+      ordering: {
+        created_at: (o) => o.created_at,
+        total_usd: (o) => o.amounts.total_usd,
+        number: (o) => o.number,
+      },
+    })
   }),
 
   http.get(`${API_URL}/orders/:id/`, async ({ request, params }) => {
@@ -62,10 +105,16 @@ export const orderHandlers = [
     if (data.contacted !== undefined) order.lead.contacted = data.contacted
     if (data.result === 'agreed') {
       order.lead.result = 'agreed'
-      pushStatus(order, 'awaiting_arrival', user, order.lead.comment)
+      pushStatus(order, 'awaiting_arrival', user, {
+        event: 'lead_agreed',
+        comment: order.lead.comment,
+      })
     } else if (data.result === 'rejected') {
       order.lead.result = 'rejected'
-      pushStatus(order, 'lead_rejected', user, order.lead.comment)
+      pushStatus(order, 'lead_rejected', user, {
+        event: 'lead_rejected',
+        comment: order.lead.comment,
+      })
     } else if (order.lead.contacted && order.status === 'lead_new') {
       pushStatus(order, 'lead_negotiation', user)
     }
@@ -85,7 +134,11 @@ export const orderHandlers = [
     const actual = (await request.json()) as Dimensions
     const previous = order.cargo.actual
     order.cargo.actual = actual
-    recalculate(order)
+    const priceError = recalculate(order)
+    if (priceError) {
+      order.cargo.actual = previous
+      return badRequest(RECALC_MESSAGES[priceError])
+    }
     const min = settings.find(
       (s) => s.warehouse_id === order.origin_warehouse.id
     )?.min_weight_kg
@@ -94,7 +147,7 @@ export const orderHandlers = [
       recalculate(order)
       return badRequest(`Расчётный вес ниже минимального (${min} кг).`)
     }
-    pushStatus(order, 'received', user)
+    pushStatus(order, 'received', user, { event: 'cargo_received' })
     // Exact price known: automatic charge from the client's card
     charge(order)
     return HttpResponse.json(order)
@@ -113,7 +166,7 @@ export const orderHandlers = [
     const step = manualSteps(order).find((s) => s.to === status)
     if (!step) return badRequest('Недопустимая смена статуса.')
     if (!isOnSide(toCurrentUser(user), order, step.side)) return forbidden()
-    pushStatus(order, status, user, comment)
+    pushStatus(order, status, user, { comment })
     return HttpResponse.json(order)
   }),
 
@@ -128,12 +181,10 @@ export const orderHandlers = [
     const { reason } = (await request.json()) as { reason: string }
     const refund = needsRefund(order)
     cancelStock(order)
-    pushStatus(
-      order,
-      'cancelled',
-      user,
-      refund ? `${reason} · Возврат средств` : reason
-    )
+    pushStatus(order, 'cancelled', user, {
+      event: refund ? 'cancelled_with_refund' : 'cancelled_by_staff',
+      comment: reason,
+    })
     return HttpResponse.json(order)
   }),
 ]

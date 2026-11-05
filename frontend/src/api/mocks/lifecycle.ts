@@ -1,7 +1,7 @@
-import { type Order, type OrderStatus } from '../types'
+import { type HistoryEvent, type Order, type OrderStatus } from '../types'
 import { type MockUser, nextId, products, stockMovements } from './db'
 import { cards, notifications } from './db-client'
-import { recalculate } from './db-orders'
+import { orders, recalculate } from './db-orders'
 import { persist } from './persist'
 
 // Order side effects the backend performs: history, client notifications,
@@ -22,15 +22,24 @@ function notify(order: Order, kind: 'order_status' | 'payment_failed') {
   })
 }
 
+type PushOptions = {
+  /** Free text written by a person. */
+  comment?: string
+  event?: HistoryEvent
+  ref?: string
+}
+
 export function pushStatus(
   order: Order,
   status: OrderStatus,
   user: MockUser | null,
-  comment = ''
+  { comment = '', event, ref }: PushOptions = {}
 ) {
   order.status = status
   order.history.push({
     status,
+    event: event ?? null,
+    ref: ref ?? null,
     changed_by: user && { id: user.id, full_name: user.full_name },
     at: new Date().toISOString(),
     comment,
@@ -83,23 +92,49 @@ export function defaultCard(userId: number) {
  */
 export function charge(order: Order) {
   if (!defaultCard(order.client.id)) {
-    pushStatus(order, 'awaiting_payment', null, 'Списание не прошло: нет карты')
+    pushStatus(order, 'awaiting_payment', null, { event: 'charge_failed' })
     return false
   }
-  pushStatus(order, 'paid', null, 'Автосписание с карты')
+  pushStatus(order, 'paid', null, { event: 'auto_charged' })
   if (order.type === 'catalog') moveStock(order, 'write_off', 'оплачен')
   recalculate(order) // fixes the UZS amount at the charge rate
   return true
 }
 
-/** Catalog orders are charged a few minutes after checkout (mock: 20 s). */
+const AUTO_CHARGE_MS = 20 * 1000
+const scheduled = new Set<number>()
+
+/**
+ * Catalog orders are charged a few minutes after checkout (mock: 20 s).
+ * The deadline is `created_at + 20 s`, so it survives a page reload:
+ * see `resumeAutoCharges`.
+ */
 export function scheduleAutoCharge(order: Order) {
-  setTimeout(() => {
-    if (order.status === 'created') {
-      charge(order)
-      persist()
+  if (scheduled.has(order.id)) return
+  scheduled.add(order.id)
+  const due = new Date(order.created_at).getTime() + AUTO_CHARGE_MS
+  setTimeout(
+    () => {
+      scheduled.delete(order.id)
+      if (order.status === 'created') {
+        charge(order)
+        persist()
+      }
+    },
+    Math.max(0, due - Date.now())
+  )
+}
+
+/**
+ * Timers die with the page. On start, orders still waiting for their
+ * automatic charge get a timer again (overdue ones are charged at once).
+ */
+export function resumeAutoCharges() {
+  for (const order of orders) {
+    if (order.type === 'catalog' && order.status === 'created') {
+      scheduleAutoCharge(order)
     }
-  }, 20 * 1000)
+  }
 }
 
 /** Undo stock effects when an order is cancelled. */

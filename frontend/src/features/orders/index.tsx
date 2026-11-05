@@ -6,6 +6,7 @@ import { ordersQuery } from '@/api/orders'
 import { type Order } from '@/api/types'
 import { formatDateTime, formatUsd } from '@/lib/format'
 import { ORDER_STATUSES } from '@/lib/order-flow'
+import { useServerTable } from '@/hooks/use-server-table'
 import { Badge } from '@/components/ui/badge'
 import {
   DataTable,
@@ -19,7 +20,11 @@ import { OrderStatusBadge } from './order-status-badge'
 
 export function Orders() {
   const { t } = useTranslation()
-  const { data, isLoading } = useQuery(ordersQuery())
+  const { params, bind } = useServerTable({
+    filterParams: { status: 'status', type: 'type', route: 'method' },
+    orderingFields: { total: 'total_usd' },
+  })
+  const { data, isLoading } = useQuery(ordersQuery(params))
 
   const columns: ColumnDef<Order>[] = [
     {
@@ -139,7 +144,8 @@ export function Orders() {
         />
         <DataTable
           columns={columns}
-          data={data}
+          data={data?.results}
+          server={bind(data?.count ?? 0)}
           isLoading={isLoading}
           searchPlaceholder={t('orders.search')}
           filters={[

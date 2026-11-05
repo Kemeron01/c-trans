@@ -28,6 +28,7 @@ type DialogState = { type: 'password' | 'toggle'; worker: StaffAccount } | null
 export function Workers() {
   const { t } = useTranslation()
   const user = useCurrentUser()
+  const isSuper = user.role === 'super_admin'
   const queryClient = useQueryClient()
   const { data, isLoading } = useQuery(workersQuery())
   const [dialog, setDialog] = useState<DialogState>(null)
@@ -59,6 +60,18 @@ export function Workers() {
         </div>
       ),
     },
+    // Super-admin sees all warehouses: which one each worker belongs to
+    ...(isSuper
+      ? [
+          {
+            id: 'warehouse',
+            accessorFn: (w: StaffAccount) => w.warehouse?.name ?? '',
+            header: t('staff.warehouse'),
+            meta: { label: t('staff.warehouse') },
+            filterFn: inSelected,
+          } satisfies ColumnDef<StaffAccount>,
+        ]
+      : []),
     {
       id: 'contacts',
       accessorFn: (w) => [w.phone, w.email].filter(Boolean).join(' '),
@@ -111,15 +124,22 @@ export function Workers() {
       <Main className='flex flex-1 flex-col gap-4 sm:gap-6'>
         <PageHeading
           title={t('nav.sections.workers')}
-          description={t('workers.description', {
-            warehouse: user.warehouse?.name ?? '',
-          })}
+          description={
+            isSuper
+              ? t('workers.descriptionAll')
+              : t('workers.description', {
+                  warehouse: user.warehouse?.name ?? '',
+                })
+          }
         >
-          <Button asChild variant='outline'>
-            <Link to='/admin/user-requests'>
-              <UserPlus /> {t('userRequests.add')}
-            </Link>
-          </Button>
+          {/* Requests are created by admins; the super-admin reviews them */}
+          {!isSuper && (
+            <Button asChild variant='outline'>
+              <Link to='/admin/user-requests'>
+                <UserPlus /> {t('userRequests.add')}
+              </Link>
+            </Button>
+          )}
         </PageHeading>
         <DataTable
           columns={columns}
@@ -127,6 +147,21 @@ export function Workers() {
           isLoading={isLoading}
           searchPlaceholder={t('staff.search')}
           filters={[
+            ...(isSuper
+              ? [
+                  {
+                    columnId: 'warehouse',
+                    title: t('staff.warehouse'),
+                    options: [
+                      ...new Set(
+                        (data ?? []).map((w) => w.warehouse?.name ?? '')
+                      ),
+                    ]
+                      .filter(Boolean)
+                      .map((name) => ({ value: name, label: name })),
+                  },
+                ]
+              : []),
             {
               columnId: 'is_active',
               title: t('common.status'),

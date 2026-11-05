@@ -253,10 +253,31 @@ export type OrderAmounts = {
   is_preliminary: boolean
 }
 
+/**
+ * Why the status changed, as a code: the UI translates it, so the text is
+ * in the viewer's language whatever language the backend wrote it in.
+ */
+export type HistoryEvent =
+  | 'auto_charged'
+  | 'charge_failed'
+  | 'lead_agreed'
+  | 'lead_rejected'
+  | 'cargo_received'
+  | 'shipment_departed'
+  | 'shipment_arrived'
+  | 'cancelled_by_client'
+  | 'cancelled_by_staff'
+  | 'cancelled_with_refund'
+
 export type StatusHistoryEntry = {
   status: OrderStatus
+  /** Set for system / workflow changes; null for a plain manual change. */
+  event: HistoryEvent | null
+  /** Object the event is about, e.g. the shipment number. */
+  ref: string | null
   changed_by: UserRef | null // null = system (auto charge)
   at: string
+  /** Free text written by a person (cancel reason, lead note); shown as is. */
   comment: string
 }
 
@@ -306,6 +327,7 @@ export type Shipment = {
   arrived_at: string | null
   order_ids: number[]
   checkpoints: Checkpoint[]
+  created_at: string
 }
 
 // ---- Stage 4: analytics ----
@@ -409,4 +431,21 @@ export type OrderTracking = {
   destination: TrackingPoint
   checkpoints: TrackingPoint[]
   shipment_status: ShipmentStatus | null
+}
+
+// ---- Server-side lists (DRF PageNumberPagination) ----
+
+/** Response of a paginated list endpoint. */
+export type Paginated<T> = { count: number; results: T[] }
+
+/**
+ * Query of a paginated list: `page` (from 1), `page_size`, `ordering`
+ * (`field` or `-field`), `search`, plus endpoint filters (`status=a,b`).
+ */
+export type ListParams = {
+  page?: number
+  page_size?: number
+  ordering?: string
+  search?: string
+  [filter: string]: string | number | boolean | undefined
 }

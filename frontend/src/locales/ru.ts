@@ -362,7 +362,20 @@ export const ru = {
       adjustment: 'Корректировка',
     },
   },
+  historyEvent: {
+    auto_charged: 'Автосписание с карты',
+    charge_failed: 'Списание не прошло: нет привязанной карты',
+    lead_agreed: 'Заявка согласована',
+    lead_rejected: 'Заявка отклонена',
+    cargo_received: 'Груз принят на складе и взвешен',
+    shipment_departed: 'Отправка {{ref}} ушла',
+    shipment_arrived: 'Отправка {{ref}} прибыла в Узбекистан',
+    cancelled_by_client: 'Отменён клиентом',
+    cancelled_by_staff: 'Отменён администратором',
+    cancelled_with_refund: 'Отменён, средства возвращены',
+  },
   workers: {
+    descriptionAll: 'Работники всех складов.',
     description:
       'Работники склада «{{warehouse}}». Новые создаются через запрос супер-админу.',
   },
@@ -377,6 +390,8 @@ export const ru = {
     rate: 'курс ЦБ {{rate}}',
     belowMinimum:
       'Вес ниже минимального для склада ({{min}}) — заказ не будет принят.',
+    noCourierTariff:
+      'Для веса заказа нет тарифа курьера. Выберите самовывоз или обратитесь на склад.',
     noTariff: 'Для такого веса нет тарифа.',
   },
   orders: {
@@ -455,6 +470,15 @@ export const ru = {
     noEligible: 'Нет подходящих заказов.',
     addCheckpoint: 'Отметить точку',
     checkpointName: 'Название точки',
+    pickPresets: 'Готовые точки',
+    pickSearch: 'Поиск города',
+    pickMap: 'На карте',
+    searchPlace: 'Город или место...',
+    placeNotFound: 'Ничего не найдено.',
+    mapHint: 'Нажмите на карте, чтобы поставить точку.',
+    geocoderError:
+      'Не удалось связаться с геокодером. Выберите точку из готовых или на карте.',
+    pickPlaceFirst: 'Выберите точку: из готовых, поиском или на карте.',
     checkpointTime: 'Время',
     depart: 'Отправить',
     arrive: 'Принять отправку',
